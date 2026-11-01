@@ -1,6 +1,6 @@
 ---
 title: "WTF: How Twitter's 'Who to Follow' Service Works"
-excerpt: "An interactive walkthrough of Twitter's WTF paper: the single-machine decision, random walks, SALSA, and the cold-start queue."
+excerpt: "An interactive walkthrough of Twitter's WTF paper: the single-machine decision, random walks, SALSA, and the refresh queue."
 publishedAt: 2026-09-02
 readTime: 13 min read
 coverImage: /images/blog/wtf-who-to-follow-cover.png
@@ -10,106 +10,110 @@ tags:
   - Graphs
 ---
 
-## Why this matters
+## Graph structure, not machine learning
 
-Recommendation systems often use machine learning. Twitter's first recommendation system did not. It used graph theory.
+Most recommendation systems today start with machine learning. Twitter's first one didn't. It used graph theory.
 
-WTF ("Who to Follow") created millions of daily recommendations. A team of three engineers built it in a few months. It turned the interest graph into a product.
+WTF ("Who to Follow") started in spring 2010 with three engineers, launched that summer, and went on to create millions of connections between users every day. The first version found those connections from the shape of the follow graph alone, using random walks and an algorithm called SALSA. Machine learning came later, in a second version built on Hadoop.
 
-> Rule to remember: the first WTF recommendations came from graph structure. They used random walks plus SALSA. They did not use machine learning. Machine learning came later.
+## Two kinds of recommendation
 
-## The problem: two kinds of recommendations
+The paper splits "who should you follow?" into two questions.
 
-The paper divides the question "who should you follow?" into two parts.
-
-- **"Interested in"**: you care about a topic. An account about that topic is a good fit. It stays a good fit even if you share nothing else.
-- **"Similar to"**: two accounts that follow the same people are often alike. This is called homophily.
+- **"Interested in"**: you care about a topic, so an account that posts about it is a good fit, even if you share nothing else with that account.
+- **"Similar to"**: accounts that follow the same people tend to be alike, a pattern called homophily. If someone is similar to you, the accounts they follow are good suggestions for you too.
 
 <FacetGame />
 
-## The graph model
+## Follows form an interest graph
 
-Each user is one node. Each follow is one directed edge. The arrow points from the follower to the followed.
+Each user is a node, and each follow is a directed edge that points from the follower to the account they follow.
 
-The follow relationship is asymmetric. You can follow a user. That user does not have to follow you. This is why the Twitter graph is an interest graph. It is not a social graph. As of August 2012, the graph had over 20 billion edges.
+Follows are one-way. You can follow someone who never follows you back, so the edges record what people are interested in, not who their friends are. That is why the paper calls Twitter's graph an interest graph rather than a social graph. By August 2012, it held over 20 billion edges between active users.
 
 <GraphExplorer />
 
-## The single-machine decision
+## Why one machine beat a cluster
 
-In 2010, the industry was moving to distributed systems. Twitter chose the opposite way. WTF held the entire graph in the RAM of one server. There was no partitioning. There was no cross-machine communication.
+In 2010, most of the industry was moving to distributed systems. Twitter went the other way: WTF held the entire follow graph in the RAM of one server, with no partitioning and no traffic between machines.
 
-The team made this decision for two reasons.
+The team had two reasons.
 
-**Reason 1** — a distributed engine must partition the graph. Graph partitioning is a hard problem. The graph has a power-law distribution of vertex degrees. For example, one user had 28 million followers. Any placement of that user puts many edges across machines. Those edges cause network traffic and latency.
+**A cluster would have to split the graph, and this graph splits badly.** Follower counts follow a power law. A few accounts have huge audiences, and one had over 28 million followers. Wherever you place an account like that, most of its edges cross to other machines, and every crossing edge costs a network hop during a random walk.
 
-**Reason 2** — the graph fit in one machine. Each edge used about five bytes of memory. A server with 72 GB of RAM could hold about eight billion edges.
+**The graph fit.** The team planned for servers with 72 GB of RAM. Stored as plain pairs of 32-bit IDs, each edge takes 8 bytes. With 64 GB for the graph and 8 GB left for the operating system and the engine, one server could hold about eight billion edges. In practice, adjacency lists brought the cost down to about five bytes per edge, so that estimate was cautious. Growth models gave them 24 to 36 months before memory became a real problem, and the team later moved to servers with 144 GB.
 
 <MemoryDecision />
 
-The engine that made this possible is Cassovary. Twitter built Cassovary from scratch for WTF. Its query model is vertex-based. It stores adjacency lists as primitive integer arrays. It runs random walks to approximate personalized PageRank. Twitter open-sourced Cassovary in March 2012.
+I think this was the right call, and the paper says why. It was a planned stopgap. The team knew the design had a ceiling and knew roughly when they would hit it. In return, they shipped a product Twitter badly needed in a few months, without first solving graph partitioning.
 
-Fault tolerance did not come from partitioning. It came from replication. A fleet of servers each held a complete copy of the graph. This gave reliability and scale-out with no extra machinery.
+Twitter built the engine, Cassovary, from scratch for WTF and open-sourced it in March 2012. Its queries start from a single vertex. It stores each adjacency list as an array of primitive integers, and it runs random walks to approximate personalized PageRank.
 
-> Why it worked: the graph grew slower than commodity RAM. Why it ended: one day, the graph grew larger than the RAM of one server.
+Fault tolerance came from copies, not partitions. Every server in the Cassovary fleet loaded the full graph, so adding a server added capacity, and losing one lost nothing.
 
-## Algorithm 1: Circle of trust (random walk)
+> The bet was that the follow graph would grow more slowly than the RAM in a commodity server. It held for long enough to ship. The design ended when the graph, and the extra data the team wanted on each edge, outgrew a single server.
 
-A walker starts at @you. The walker hops to a random follow. It repeats many times. The accounts it visits most often form your circle of trust.
+## Step 1: find your circle of trust with a random walk
+
+A walker starts at @you and hops to a random account that you follow. From there it keeps hopping, and now and then it jumps back to @you. After many hops, the accounts it visited most often form your circle of trust.
 
 <CircleOfTrust />
 
-WTF computed the circle of trust from scratch every time. So the results were always fresh, within one daily graph snapshot. WTF also offered this as a service. Other Twitter products used it to upweight content in search and discovery.
+Cassovary ran this walk from scratch on every request. The results were always as fresh as the latest daily graph snapshot, and other products could change the walk's settings for their own needs. Twitter search and discovery used the circle of trust as a service, for example, to rank content from accounts in your circle higher.
 
-## Algorithm 2: SALSA — the two-step walk
+## Step 2: rank candidates with SALSA
 
-Your circle of trust are the hubs. The accounts they follow are the authorities. The authorities are your candidates. The hub side holds about 500 top-ranked nodes from your circle of trust.
+SALSA takes your circle of trust and builds a two-sided graph. The left side, the hubs, holds about 500 of the top-ranked accounts from your circle. The right side, the authorities, holds the accounts that those hubs follow. The authorities are your candidates.
 
 <SalsaDemo />
 
-> Each SALSA step crosses two links (hub → authority → hub). So the walk always ends up back on the side where it started. This is a random walk on a bipartite graph.
+> Each SALSA step crosses two links: one from a hub to an authority, and one back. So a walk that starts on the hub side always ends on the hub side, and a walk that starts on the authority side always ends there too.
 
-SALSA originally ranked web pages. It is in the same family as PageRank and HITS. Twitter adapted it for user recommendation. The ranking of the hubs also powers the "similar to you" feature.
+After several rounds, both sides have scores. The ranked authorities become your "interested in" recommendations. The ranked hubs are the accounts most similar to you, and their ranking feeds the "similar to you" feature.
 
-## Making it real-time: the cold-start queue
+SALSA was first built to rank web pages, and it belongs to the same family of random-walk algorithms as PageRank and HITS. Twitter's change was to build the two sides from one user's circle of trust, so every result is personal.
 
-Recommendations cannot wait for a nightly batch. WTF keeps a queue of users to refresh. The queue sorts users by their "last refresh" timestamp.
+## Recommendations refresh all day, not overnight
+
+The graph itself is loaded only once a day. Reloading it more often would put too much load on the production databases. Recommendations still change throughout the day, because Cassovary servers work through a queue that holds every Twitter user, sorted by when each user's recommendations were last refreshed. Each server takes the next user, generates about 100 recommendations in under 500 ms per thread, writes them to a MySQL database called the WTF DB, and puts the user back at the end of the queue.
 
 <ColdStartQueue />
 
-New users have no history. They jump to the front of the queue. They often see recommendations before account setup finishes. When a user consumes all recommendations, the queue raises that user's priority. That user gets new suggestions within about an hour.
+Two kinds of users skip ahead. Active users who have used up their recommendations, or soon will, move to the front, and they usually get new ones within an hour.
 
-For new users, WTF also ran a separate set of real-time algorithms. These algorithms read the graph directly from FlockDB. FlockDB is the system of record. It holds the ground truth of the graph.
+New users move to the front too, which deals with the cold-start problem: a new account has almost no follows to walk. In the common case, a new user sees suggestions before they finish the sign-up flow. WTF also ran a separate set of real-time algorithms for new users. These algorithms read from Cassovary and from FlockDB, the database that holds the live follow graph, so they could use follows made after the last snapshot.
 
-## Did it work?
+## How Twitter measured it
 
-Offline evaluations tested precision and recall on historical graph snapshots. The real verdict came from online A/B tests. The tests tracked:
+Offline tests replayed old graph snapshots and checked whether the algorithms predicted follows that happened later. The real test was online A/B experiments, which tracked two numbers:
 
-- **FTR** (follow-through rate) — does the user actually follow the suggestion?
-- **EPI** (engagement per impression) — does the user keep engaging with it later?
+- **Follow-through rate (FTR)**: the share of shown recommendations that users followed.
+- **Engagement per impression (EPI)**: how much a user engaged with an account after following it.
 
-The production system did not run one algorithm. It blended results from about 20 different algorithms. An endpoint called the Blender combined the results. It also ran the A/B tests and recorded feedback.
+The paper is candid about FTR. FTR measures precision but not recall. It favours new users, who follow more accounts anyway. It also counts every follow the same, whether that account improves your timeline or not. EPI gets closer to what Twitter wanted, but you only get it after a waiting period, so it slows down each experiment.
 
-## Where it broke, and the sequel
+Production never ran one algorithm by itself. The standard version blended results from about 20 algorithms. An endpoint called the Blender merged those results, sent them to the web and mobile clients, ran the A/B tests, and recorded the feedback.
 
-The single machine hit a memory ceiling. WTF also wanted richer signals. It wanted metadata on edges, such as retweets, mentions, and timestamps. A follow graph alone could not hold that.
+## Why the second version moved to Hadoop
 
-WTF built a second generation. It used Hadoop and machine learning. It defined a graph called the "Real Graph". The Real Graph lived on HDFS, not in memory. Its edges carried retweets, favorites, and mentions, plus weights.
+The team knew from the start that the single-server design had two weaknesses. The first was memory: the graph would eventually outgrow one server. The second mattered more. There was no room to store extra data on each edge. In the 8-byte layout, adding one 8-bit weight to every edge costs another 12.5% of memory. That ruled out timestamps, interaction counts, and profile data, which are the signals better algorithms need.
 
-The new pipeline had two stages:
+The second version of WTF dropped Cassovary and ran entirely on Hadoop, with every algorithm written in Pig. It starts from a graph the paper calls the "Real Graph", which lives on HDFS, not in memory. Its edges carry weights and interaction signals such as retweets, favorites, and replies.
 
-1. **Candidate generation** — use graph algorithms to produce a short list of promising accounts.
-2. **Rescoring** — apply a learned model to rank those candidates. The model was logistic regression, trained with stochastic gradient descent.
+The new pipeline has two stages:
 
-## Final checklist
+1. **Candidate generation**: graph algorithms produce a short list of promising accounts, aiming for recall and variety.
+2. **Rescoring**: a logistic regression model, trained with stochastic gradient descent, ranks those candidates for precision.
 
-- Graph structure alone produced good recommendations. It required no machine learning.
-- The single-machine design gave simplicity and millisecond latency. It did not last forever.
-- Random walks find your local circle. SALSA finds the global authorities.
-- The design assumed that the graph would grow slower than RAM grew.
-- The system got reliability from replication, not from partitioning.
-- Production blended about 20 algorithms into one ensemble.
+## What to remember
 
-**Paper:** _WTF: The Who to Follow Service at Twitter_ — Gupta, Goel, Lin, Sharma, Wang, Zadeh (WWW 2013).
+- Graph structure alone produced good recommendations. Machine learning came in the second version.
+- Holding the whole graph on one server was a planned stopgap with a known lifespan, and it let three engineers ship in a few months.
+- The random walk finds your circle of trust. SALSA ranks the accounts that your circle follows.
+- Reliability and scale came from full copies of the graph, not from partitioning.
+- The graph refreshed daily. Recommendations refreshed all day through a queue, and new users went to the front.
+- Production blended about 20 algorithms, and the team judged them by FTR and EPI from A/B tests.
+
+**Paper:** _WTF: The Who to Follow Service at Twitter_ by Gupta, Goel, Lin, Sharma, Wang, and Zadeh (WWW 2013).
 
 [Read the original paper](https://web.stanford.edu/~ashishg/papers/wtf_overview.pdf)

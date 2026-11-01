@@ -21,7 +21,7 @@ export default function BlogPage() {
   const posts = getAllPosts();
 
   return (
-    <main className="shell min-h-screen pb-20 pt-10 md:pt-14">
+    <main className="shell min-h-screen pb-20 pt-28 md:pt-32">
       <Header />
       <section>
         <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">

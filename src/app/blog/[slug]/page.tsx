@@ -72,7 +72,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   return (
-    <main className="shell min-h-screen pb-20 pt-10 md:pt-14">
+    <main className="shell min-h-screen pb-20 pt-28 md:pt-32">
       <Header />
       <article className="max-w-none">
         <Link
@@ -104,7 +104,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
         )}
 
-        <div className="prose mt-10 max-w-none">
+        <div className="prose mt-10 max-w-none space-y-5">
           <MDXRemote
             source={post.content}
             components={blogMdxComponents}

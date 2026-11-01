@@ -15,7 +15,7 @@ import { SalsaDemo } from './wtf/salsa-demo';
 export const blogMdxComponents: MDXComponents = {
   h2: (props) => (
     <h2
-      className="pt-4 font-serif text-2xl text-white md:text-3xl"
+      className="pt-6 text-2xl font-semibold tracking-tight text-white md:text-3xl"
       {...props}
     />
   ),
