@@ -43,9 +43,7 @@ export const GraphExplorer = () => {
       <div className="border-t border-line-subtle p-4 text-sm leading-relaxed text-muted md:p-5">
         {selected && selectedLabel ? (
           <p>
-            <span className="font-medium text-foreground">
-              {selectedLabel}
-            </span>{' '}
+            <span className="font-medium text-foreground">{selectedLabel}</span>{' '}
             {followees.length > 0
               ? `follows ${followees.map(nodeLabel).join(', ')}.`
               : 'follows nobody in this toy graph.'}{' '}

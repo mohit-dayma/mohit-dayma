@@ -19,7 +19,9 @@ export const timeoutScenario: EventLoopScenario = {
       explanation: 'This callback cannot run before at least 1000ms.',
       stack: ['global()'],
       microtaskQueue: [],
-      taskQueue: [{ id: 't1', label: 'timeout(1000) -> "T1 ~1000ms" (waiting timer)' }],
+      taskQueue: [
+        { id: 't1', label: 'timeout(1000) -> "T1 ~1000ms" (waiting timer)' },
+      ],
       output: [],
     },
     {
@@ -71,7 +73,9 @@ export const timeoutScenario: EventLoopScenario = {
       explanation: 'Now task queue callback with 0ms delay runs.',
       stack: ['timeout(0) callback'],
       microtaskQueue: [],
-      taskQueue: [{ id: 't1', label: 'timeout(1000) -> "T1 ~1000ms" (waiting timer)' }],
+      taskQueue: [
+        { id: 't1', label: 'timeout(1000) -> "T1 ~1000ms" (waiting timer)' },
+      ],
       output: ['Sync end', 'Microtask', 'T2 ~0ms'],
     },
     {

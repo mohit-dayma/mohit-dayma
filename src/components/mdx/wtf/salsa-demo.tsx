@@ -21,8 +21,8 @@ export const SalsaDemo = () => {
   const nodes = wtfNodes.filter((node) => bipartitePositions[node.id]);
   const scoreLabels = Object.fromEntries(
     Object.entries({ ...step.hubScores, ...step.authorityScores }).map(
-      ([id, score]) => [id, score.toFixed(2)]
-    )
+      ([id, score]) => [id, score.toFixed(2)],
+    ),
   );
 
   return (

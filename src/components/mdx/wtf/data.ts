@@ -72,42 +72,48 @@ export const walkSteps: WalkStep[] = [
   },
   {
     title: 'Hop to @alice',
-    explanation: 'The walker randomly picks one of your followees. Here it lands on @alice.',
+    explanation:
+      'The walker randomly picks one of your followees. Here it lands on @alice.',
     currentNode: 'alice',
     visitedCounts: { you: 1, alice: 1 },
     circleOfTrust: ['alice'],
   },
   {
     title: 'Hop to @bob',
-    explanation: '@alice also follows @bob. So the walk can stay inside your neighborhood.',
+    explanation:
+      '@alice also follows @bob. So the walk can stay inside your neighborhood.',
     currentNode: 'bob',
     visitedCounts: { you: 1, alice: 1, bob: 1 },
     circleOfTrust: ['alice', 'bob'],
   },
   {
     title: 'Hop to @carol',
-    explanation: '@bob follows @carol. The walk stays among the accounts you already follow.',
+    explanation:
+      '@bob follows @carol. The walk stays among the accounts you already follow.',
     currentNode: 'carol',
     visitedCounts: { you: 1, alice: 1, bob: 1, carol: 1 },
     circleOfTrust: ['alice', 'bob', 'carol'],
   },
   {
     title: 'Back to @alice',
-    explanation: '@carol follows @alice. So the walk loops back. @alice now has two visits.',
+    explanation:
+      '@carol follows @alice. So the walk loops back. @alice now has two visits.',
     currentNode: 'alice',
     visitedCounts: { you: 1, alice: 2, bob: 1, carol: 1 },
     circleOfTrust: ['alice', 'bob', 'carol'],
   },
   {
     title: 'Deeper: @dan',
-    explanation: 'Sometimes the walk leaves your immediate circle. @alice follows @dan, a sports account.',
+    explanation:
+      'Sometimes the walk leaves your immediate circle. @alice follows @dan, a sports account.',
     currentNode: 'dan',
     visitedCounts: { you: 1, alice: 2, bob: 1, carol: 1, dan: 1 },
     circleOfTrust: ['alice', 'bob', 'carol'],
   },
   {
     title: 'Hop to @erin',
-    explanation: '@dan follows @erin. The walker is now two hops away from you.',
+    explanation:
+      '@dan follows @erin. The walker is now two hops away from you.',
     currentNode: 'erin',
     visitedCounts: { you: 1, alice: 2, bob: 1, carol: 1, dan: 1, erin: 1 },
     circleOfTrust: ['alice', 'bob', 'carol'],
@@ -116,28 +122,63 @@ export const walkSteps: WalkStep[] = [
     title: 'Hop to @finn',
     explanation: '@erin follows @finn. Such far visits happen rarely.',
     currentNode: 'finn',
-    visitedCounts: { you: 1, alice: 2, bob: 1, carol: 1, dan: 1, erin: 1, finn: 1 },
+    visitedCounts: {
+      you: 1,
+      alice: 2,
+      bob: 1,
+      carol: 1,
+      dan: 1,
+      erin: 1,
+      finn: 1,
+    },
     circleOfTrust: ['alice', 'bob', 'carol'],
   },
   {
     title: 'Return to @bob',
-    explanation: '@finn follows @bob. This pulls the walk back into your neighborhood.',
+    explanation:
+      '@finn follows @bob. This pulls the walk back into your neighborhood.',
     currentNode: 'bob',
-    visitedCounts: { you: 1, alice: 2, bob: 2, carol: 1, dan: 1, erin: 1, finn: 1 },
+    visitedCounts: {
+      you: 1,
+      alice: 2,
+      bob: 2,
+      carol: 1,
+      dan: 1,
+      erin: 1,
+      finn: 1,
+    },
     circleOfTrust: ['alice', 'bob', 'carol'],
   },
   {
     title: 'Back to @carol',
-    explanation: '@bob follows @carol again. The walk keeps coming back to the accounts you know.',
+    explanation:
+      '@bob follows @carol again. The walk keeps coming back to the accounts you know.',
     currentNode: 'carol',
-    visitedCounts: { you: 1, alice: 2, bob: 2, carol: 2, dan: 1, erin: 1, finn: 1 },
+    visitedCounts: {
+      you: 1,
+      alice: 2,
+      bob: 2,
+      carol: 2,
+      dan: 1,
+      erin: 1,
+      finn: 1,
+    },
     circleOfTrust: ['alice', 'bob', 'carol'],
   },
   {
     title: 'Again @alice',
-    explanation: '@carol follows @alice. After many walks, @alice keeps showing up.',
+    explanation:
+      '@carol follows @alice. After many walks, @alice keeps showing up.',
     currentNode: 'alice',
-    visitedCounts: { you: 1, alice: 3, bob: 2, carol: 2, dan: 1, erin: 1, finn: 1 },
+    visitedCounts: {
+      you: 1,
+      alice: 3,
+      bob: 2,
+      carol: 2,
+      dan: 1,
+      erin: 1,
+      finn: 1,
+    },
     circleOfTrust: ['alice', 'bob', 'carol'],
   },
   {
@@ -145,7 +186,15 @@ export const walkSteps: WalkStep[] = [
     explanation:
       'After many random walks, the most-visited accounts form your circle of trust: @alice, @bob, @carol — the accounts you follow.',
     currentNode: 'you',
-    visitedCounts: { you: 1, alice: 3, bob: 2, carol: 2, dan: 1, erin: 1, finn: 1 },
+    visitedCounts: {
+      you: 1,
+      alice: 3,
+      bob: 2,
+      carol: 2,
+      dan: 1,
+      erin: 1,
+      finn: 1,
+    },
     circleOfTrust: ['alice', 'bob', 'carol'],
   },
 ];
@@ -215,7 +264,8 @@ export const queueSteps: QueueStep[] = [
   },
   {
     title: '@fresh signs up',
-    explanation: 'Another cold-start user arrives. That user goes ahead of everyone else.',
+    explanation:
+      'Another cold-start user arrives. That user goes ahead of everyone else.',
     queue: ['fresh', 'alice', 'bob', 'carol', 'dan', 'erin', 'finn'],
     highlight: 'fresh',
   },

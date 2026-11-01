@@ -22,8 +22,8 @@ export const MemoryDecision = () => {
           One machine, or many?
         </h4>
         <p className="mt-1 text-sm text-muted">
-          WTF chose a single in-memory server. Move the slider to grow the
-          graph and to see the design break.
+          WTF chose a single in-memory server. Move the slider to grow the graph
+          and to see the design break.
         </p>
       </div>
 
@@ -61,7 +61,9 @@ export const MemoryDecision = () => {
                   className="h-full rounded-full"
                   style={{
                     width: `${ramPct}%`,
-                    backgroundColor: fits ? 'var(--color-foreground)' : '#d97706',
+                    backgroundColor: fits
+                      ? 'var(--color-foreground)'
+                      : '#d97706',
                   }}
                 />
               </div>

@@ -1,6 +1,6 @@
 ---
 title: JavaScript Event Loop Explained with Interactive Examples
-excerpt: "Learn call stack, task queue, and microtask queue through three interactive walkthroughs: simple ordering, nested async flow, and non-zero timeout behavior."
+excerpt: 'Learn call stack, task queue, and microtask queue through three interactive walkthroughs: simple ordering, nested async flow, and non-zero timeout behavior.'
 publishedAt: 2026-02-15
 readTime: 8 min read
 tags:
@@ -9,22 +9,28 @@ tags:
   - Async
   - Browser Runtime
 ---
+
 ## Why this matters
+
 JavaScript runs on a single call stack, but async APIs make it feel concurrent. The event loop is the mechanism that decides what runs next.
 
 <Callout type="info">
-  Rule to remember: when the call stack becomes empty, JavaScript drains the microtask queue first, then runs one task from the task queue, then repeats.
+  Rule to remember: when the call stack becomes empty, JavaScript drains the
+  microtask queue first, then runs one task from the task queue, then repeats.
 </Callout>
 
 ## How JavaScript works (quick mental model)
+
 JavaScript runs in a top-down, sequential way because it is single-threaded in the main runtime. That means statements are executed one by one on the call stack.
 
 When async code is involved, the common execution pattern looks like:
+
 1. Synchronous code
 2. Promise callbacks (microtasks)
 3. Timeout and interval callbacks (tasks/macrotasks)
 
 ## The three building blocks
+
 - **Call Stack**: current execution context. Synchronous code runs here.
 - **Task Queue (Macrotask Queue)**: a FIFO queue for `setTimeout`, `setInterval`, DOM events, and I/O callbacks.
 - **Microtask Queue**: a FIFO queue for `Promise.then/catch/finally`, `queueMicrotask`, and `MutationObserver`.
@@ -32,21 +38,25 @@ When async code is involved, the common execution pattern looks like:
 The call stack itself behaves like **LIFO** (Last In, First Out), while both queues behave like **FIFO** (First In, First Out).
 
 ## Example 1: Simple ordering
+
 The code mixes sync logs, a Promise callback, and a `setTimeout(0)` callback.
 
 <EventLoopSimpleDemo />
 
 ## Example 2: Slightly complex ordering
+
 This version nests a microtask inside a timeout and a timeout inside a microtask.
 
 <EventLoopComplexDemo />
 
 ## Example 3: Timeout is not zero
+
 This shows that `setTimeout(fn, 1000)` means **at least** 1000ms, not exactly 1000ms.
 
 <EventLoopTimeoutDemo />
 
 ## Final checklist
+
 - Synchronous code runs first on the call stack.
 - After stack is empty, all microtasks run before the next task.
 - `setTimeout(..., 0)` still waits for a future task turn.

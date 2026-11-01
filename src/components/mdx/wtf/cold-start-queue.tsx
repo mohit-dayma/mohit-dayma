@@ -50,7 +50,7 @@ export const ColdStartQueue = () => {
                       'flex items-center justify-between rounded-md border px-3 py-2 text-xs font-medium md:text-sm',
                       isNext && 'border-foreground',
                       isHighlighted && 'border-amber-500 bg-amber-500/10',
-                      !isNext && !isHighlighted && 'border-line-subtle'
+                      !isNext && !isHighlighted && 'border-line-subtle',
                     )}
                   >
                     <span>{nodeLabel(id)}</span>

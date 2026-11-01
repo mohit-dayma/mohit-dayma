@@ -2,11 +2,11 @@
 
 @theme {
   --font-sans:
-    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, sans-serif;
+    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono:
-    var(--font-geist-mono), ui-monospace, 'Geist Mono', 'SFMono-Regular', Menlo, Monaco, Consolas,
-    monospace;
+    var(--font-geist-mono), ui-monospace, 'Geist Mono', 'SFMono-Regular', Menlo,
+    Monaco, Consolas, monospace;
 
   --color-background: #000000;
   --color-foreground: #ededed;

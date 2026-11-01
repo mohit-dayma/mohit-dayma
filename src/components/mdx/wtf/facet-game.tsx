@@ -10,7 +10,7 @@ export const FacetGame = () => {
   const [answers, setAnswers] = useState<Record<number, FacetAnswer>>({});
 
   const score = facetQuestions.filter(
-    (question, index) => answers[index] === question.answer
+    (question, index) => answers[index] === question.answer,
   ).length;
 
   return (
@@ -53,15 +53,19 @@ export const FacetGame = () => {
                       }
                       className={twMerge(
                         'rounded-md border px-3 py-1.5 text-xs font-medium transition',
-                        isChosen && isCorrect && 'border-emerald-500 bg-emerald-500 text-background',
-                        isChosen && !isCorrect && 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+                        isChosen &&
+                          isCorrect &&
+                          'border-emerald-500 bg-emerald-500 text-background',
+                        isChosen &&
+                          !isCorrect &&
+                          'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-400',
                         !isChosen &&
                           isRightAnswer &&
                           chosen !== undefined &&
                           'border-emerald-500 text-emerald-700 dark:text-emerald-400',
                         !isChosen &&
                           !(isRightAnswer && chosen !== undefined) &&
-                          'border-line hover:opacity-80'
+                          'border-line hover:opacity-80',
                       )}
                     >
                       {option === 'interested-in'
@@ -78,7 +82,7 @@ export const FacetGame = () => {
                     'mt-3 text-xs leading-relaxed',
                     isCorrect
                       ? 'text-emerald-700 dark:text-emerald-400'
-                      : 'text-amber-700 dark:text-amber-400'
+                      : 'text-amber-700 dark:text-amber-400',
                   )}
                 >
                   {isCorrect ? 'Correct.' : 'Not quite.'} {question.reason}

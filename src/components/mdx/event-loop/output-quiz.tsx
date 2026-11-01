@@ -13,7 +13,10 @@ const normalize = (value: string) =>
     .map((line) => line.trim())
     .filter(Boolean);
 
-export const OutputQuiz = ({ expectedOrder, embedded = false }: OutputQuizProps) => {
+export const OutputQuiz = ({
+  expectedOrder,
+  embedded = false,
+}: OutputQuizProps) => {
   const [guess, setGuess] = useState('');
   const [isChecked, setIsChecked] = useState(false);
 
@@ -24,7 +27,13 @@ export const OutputQuiz = ({ expectedOrder, embedded = false }: OutputQuizProps)
     guessedLines.every((line, index) => line === expectedLines[index]);
 
   return (
-    <div className={embedded ? 'mt-3' : 'mt-3 rounded-lg border border-line-subtle bg-surface p-3'}>
+    <div
+      className={
+        embedded
+          ? 'mt-3'
+          : 'mt-3 rounded-lg border border-line-subtle bg-surface p-3'
+      }
+    >
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
         Test Yourself
       </p>

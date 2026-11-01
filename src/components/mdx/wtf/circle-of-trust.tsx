@@ -14,7 +14,7 @@ export const CircleOfTrust = () => {
   const step = walkSteps[stepIndex];
 
   const counts = Object.entries(step.visitedCounts).filter(
-    ([id]) => id !== 'you'
+    ([id]) => id !== 'you',
   );
   const maxCount = Math.max(...counts.map(([, count]) => count), 1);
 
@@ -43,12 +43,13 @@ export const CircleOfTrust = () => {
         />
 
         <div className="rounded-md border border-line-subtle bg-surface p-3">
-          <p className="text-[11px] font-semibold text-muted">
-            Visits so far
-          </p>
+          <p className="text-[11px] font-semibold text-muted">Visits so far</p>
           <div className="mt-3 space-y-2">
             {counts.map(([id, count]) => (
-              <div key={id} className="flex items-center gap-2 text-xs md:text-sm">
+              <div
+                key={id}
+                className="flex items-center gap-2 text-xs md:text-sm"
+              >
                 <span className="w-14 shrink-0 font-mono">{nodeLabel(id)}</span>
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-background">
                   <motion.div

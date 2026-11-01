@@ -35,7 +35,9 @@ export const GraphCanvas = ({
   const markerId = `wtf-arrow-${useId().replace(/[:]/g, '')}`;
 
   const focused = focusFrom ?? activeNode;
-  const focusedEdges = focused ? edges.filter((edge) => edge.from === focused) : [];
+  const focusedEdges = focused
+    ? edges.filter((edge) => edge.from === focused)
+    : [];
 
   return (
     <svg
@@ -67,9 +69,11 @@ export const GraphCanvas = ({
 
         const isFocused = focusedEdges.some(
           (focusedEdge) =>
-            focusedEdge.from === edge.from && focusedEdge.to === edge.to
+            focusedEdge.from === edge.from && focusedEdge.to === edge.to,
         );
-        const color = isFocused ? 'var(--color-foreground)' : 'var(--color-line)';
+        const color = isFocused
+          ? 'var(--color-foreground)'
+          : 'var(--color-line)';
         const angle = Math.atan2(to.y - from.y, to.x - from.x);
         const startX = from.x + Math.cos(angle) * RADIUS;
         const startY = from.y + Math.sin(angle) * RADIUS;

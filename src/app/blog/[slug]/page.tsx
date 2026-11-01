@@ -1,22 +1,22 @@
-import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-import { MDXRemote } from "next-mdx-remote/rsc";
-import { notFound } from "next/navigation";
-import rehypeHighlight from "rehype-highlight";
-import { blogMdxComponents } from "@/components/mdx/blog-mdx-components";
-import { Header } from "@/sections/header";
-import { getAllPosts, getPostBySlug } from "@/utils/blogs";
+import type { Metadata } from 'next';
+import Image from 'next/image';
+import Link from 'next/link';
+import { MDXRemote } from 'next-mdx-remote/rsc';
+import { notFound } from 'next/navigation';
+import rehypeHighlight from 'rehype-highlight';
+import { blogMdxComponents } from '@/components/mdx/blog-mdx-components';
+import { Header } from '@/sections/header';
+import { getAllPosts, getPostBySlug } from '@/utils/blogs';
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
 const formatDate = (date: string) =>
-  new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   }).format(new Date(date));
 
 export async function generateStaticParams() {
@@ -33,7 +33,7 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: "Post Not Found | Mohit Dayma",
+      title: 'Post Not Found | Mohit Dayma',
     };
   }
 
@@ -43,7 +43,7 @@ export async function generateMetadata({
     openGraph: {
       title: post.title,
       description: post.excerpt,
-      type: "article",
+      type: 'article',
       ...(post.coverImage && {
         images: [
           {
@@ -63,7 +63,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const post = getPostBySlug(slug);
   const posts = getAllPosts();
   const postIndex = posts.findIndex((entry) => entry.slug === slug);
-  const previousPost = postIndex < posts.length - 1 ? posts[postIndex + 1] : null;
+  const previousPost =
+    postIndex < posts.length - 1 ? posts[postIndex + 1] : null;
   const nextPost = postIndex > 0 ? posts[postIndex - 1] : null;
 
   if (!post) {
@@ -85,7 +86,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </h1>
         <p className="mt-3 font-mono text-xs text-faint">
           {[formatDate(post.publishedAt), post.readTime, ...post.tags].join(
-            " · ",
+            ' · ',
           )}
         </p>
 
