@@ -19,6 +19,7 @@ const formatDate = (date: string) =>
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'UTC',
   }).format(new Date(date));
 
 export async function generateStaticParams() {

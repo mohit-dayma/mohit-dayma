@@ -1,13 +1,10 @@
 import type { MetadataRoute } from 'next';
-import { getAllPosts } from '@/utils/blogs';
+import { getAllPosts, getLatestPostDate } from '@/utils/blogs';
 import { absoluteUrl } from '@/utils/site';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const posts = getAllPosts();
-  const latestPost = posts[0];
-  const latestPostDate = latestPost
-    ? new Date(latestPost.updatedAt ?? latestPost.publishedAt)
-    : undefined;
+  const latestPostDate = getLatestPostDate(posts);
 
   return [
     {

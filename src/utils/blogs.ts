@@ -48,6 +48,17 @@ const normalizeDate = (date: Frontmatter['publishedAt']) => {
   return String(date).trim();
 };
 
+const isValidDate = (date: string) =>
+  date !== '' && !Number.isNaN(new Date(date).getTime());
+
+/** Newest `updatedAt ?? publishedAt` across all posts, or undefined. */
+export const getLatestPostDate = (posts: BlogPost[]): Date | undefined => {
+  const timestamps = posts.map((post) =>
+    new Date(post.updatedAt ?? post.publishedAt).getTime(),
+  );
+  return timestamps.length ? new Date(Math.max(...timestamps)) : undefined;
+};
+
 const getPostFromFile = (fileName: string): BlogPost | null => {
   const filePath = path.join(BLOG_DIR, fileName);
   const source = fs.readFileSync(filePath, 'utf8');
@@ -58,12 +69,18 @@ const getPostFromFile = (fileName: string): BlogPost | null => {
     return null;
   }
 
+  const publishedAt = normalizeDate(frontmatter.publishedAt);
+  if (!isValidDate(publishedAt)) {
+    return null;
+  }
+  const updatedAt = normalizeDate(frontmatter.updatedAt);
+
   return {
     slug: fileName.replace(/\.(md|mdx)$/i, ''),
     title: frontmatter.title,
     excerpt: frontmatter.excerpt || '',
-    publishedAt: normalizeDate(frontmatter.publishedAt),
-    updatedAt: normalizeDate(frontmatter.updatedAt) || undefined,
+    publishedAt,
+    updatedAt: isValidDate(updatedAt) ? updatedAt : undefined,
     readTime: frontmatter.readTime || '5 min read',
     coverImage: frontmatter.coverImage || undefined,
     coverAlt: frontmatter.coverAlt || undefined,

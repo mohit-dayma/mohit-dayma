@@ -1,4 +1,4 @@
-import { getAllPosts } from '@/utils/blogs';
+import { getAllPosts, getLatestPostDate } from '@/utils/blogs';
 import { absoluteUrl, siteConfig } from '@/utils/site';
 
 export const dynamic = 'force-static';
@@ -14,10 +14,11 @@ const escapeXml = (value: string) =>
 export function GET() {
   const posts = getAllPosts();
   const feedUrl = absoluteUrl(siteConfig.rssPath);
+  const lastBuildDate = getLatestPostDate(posts);
 
   const items = posts
     .map((post) => {
-      const url = absoluteUrl(`/blog/${post.slug}`);
+      const url = escapeXml(absoluteUrl(`/blog/${post.slug}`));
       const categories = post.tags
         .map((tag) => `      <category>${escapeXml(tag)}</category>`)
         .join('\n');
@@ -41,7 +42,7 @@ ${categories}
     <description>${escapeXml(siteConfig.blogDescription)}</description>
     <language>en</language>
     <atom:link href="${feedUrl}" rel="self" type="application/rss+xml" />
-${posts[0] ? `    <lastBuildDate>${new Date(posts[0].publishedAt).toUTCString()}</lastBuildDate>\n` : ''}${items}
+${lastBuildDate ? `    <lastBuildDate>${lastBuildDate.toUTCString()}</lastBuildDate>\n` : ''}${items}
   </channel>
 </rss>
 `;
