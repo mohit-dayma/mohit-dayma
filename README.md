@@ -4,7 +4,7 @@
 
 I care about the details that make products feel sharp — performance, accessibility, motion, and maintainable code. Currently building with Next.js, TypeScript, TanStack Query, Zustand, and modern UI libraries.
 
-🔗 [Portfolio](https://mohitd.com) · [LinkedIn](https://linkedin.com/in/mohit-dayma-421731192) · [Twitter](https://twitter.com/Mohit13_10)
+🔗 [Portfolio](https://mohitd.com) · [LinkedIn](https://www.linkedin.com/in/mohit-dayama/) · [X](https://x.com/mohitt_dayma)
 
 ---
 

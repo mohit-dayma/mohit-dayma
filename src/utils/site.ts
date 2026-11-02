@@ -5,12 +5,12 @@ export const siteConfig = {
   url: 'https://mohitd.com',
   name: 'Mohit Dayma',
   jobTitle: 'Software Developer',
-  title: 'Mohit Dayma – Software Developer (React, Next.js, Node.js)',
+  title: 'Mohit Dayma - Software Developer (React, Next.js, Node.js)',
   description:
     'Mohit Dayma is a software developer building web and mobile apps with React, Next.js, React Native and NestJS. Projects, interactive deep dives and notes.',
   blogDescription:
     'Interactive deep dives on JavaScript internals, system design and frontend engineering by Mohit Dayma.',
-  twitterHandle: '@Mohit13_10',
+  twitterHandle: '@mohitt_dayma',
   ogImage: '/og',
   rssPath: '/rss.xml',
   locale: 'en_US',
