@@ -1,6 +1,6 @@
 export const portfolioProjects = [
   {
-    title: 'Bugbook a 𝕏 clone',
+    title: 'Bugbook - an 𝕏 clone',
     year: '2023',
     link: 'https://bugbook-62ez.vercel.app/',
     description:

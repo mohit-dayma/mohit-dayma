@@ -98,32 +98,34 @@ export default function Home() {
       <PlaneFlyover />
       <main className="relative z-10">
         <Header />
-        <div className="shell flex min-h-screen flex-col pb-10 pt-20 backdrop-blur-md">
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+        <div className="shell flex min-h-screen flex-col bg-background/70 pb-10 pt-20 backdrop-blur-md">
+          <h1
+            id="hero-name"
+            className="mt-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
             Mohit Dayma
           </h1>
           <p className="mt-2 text-lg text-foreground/90">
-            Software developer building web and mobile apps with React, Next.js.
+            Software developer building web apps with React, Next.js.
           </p>
           <p className="mt-3 leading-relaxed text-muted">
-            I started as a frontend developer, but the more I built, the more I
-            got fascinated by software as a whole: backend, databases and a
-            little DevOps. These days I work across the stack with React,
-            Next.js, Tailwind.
+            I started as a frontend developer, but the more I built, the more
+            I got pulled into the rest of the stack: backends, databases and a
+            bit of DevOps.
             <br />
             <br />
-            During my initial programming days, I was not much interested in
-            programming so instead I was learning{" "}
+            Before any of that, I was making 3D models in{" "}
             <a href="https://www.blender.org/" className="link">
               Blender
             </a>
-            . The aeroplane was the first big thing I built, following a{" "}
+            . The plane flying across this page was the first big thing I
+            built, following a{" "}
             <a
               href="https://youtube.com/playlist?list=PLgO2ChD7acqH5S3fCO1GbAJC55NeVaCCp&si=GoKOaathRV9gyYMM"
               className="link"
             >
-              YouTube playlist.
+              YouTube playlist
             </a>
+            .
           </p>
           <div
             className="mt-5 flex items-center gap-2"
@@ -148,10 +150,10 @@ export default function Home() {
             })}
           </div>
           {posts.length > 0 && (
-            <section id="writing" className="mt-12 scroll-mt-20">
+            <section id="blogs" className="mt-12 scroll-mt-20">
               <div className="flex items-baseline justify-between">
                 <h2 className="font-mono text-xs uppercase tracking-widest text-faint">
-                  Writing
+                  Blogs
                 </h2>
                 <Link
                   href="/blog"
