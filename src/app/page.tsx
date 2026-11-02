@@ -103,8 +103,7 @@ export default function Home() {
             Mohit Dayma
           </h1>
           <p className="mt-2 text-lg text-foreground/90">
-            Software developer building web and mobile apps with React, Next.js,
-            React Native and NestJS.
+            Software developer building web and mobile apps with React, Next.js.
           </p>
           <p className="mt-3 leading-relaxed text-muted">
             I started as a frontend developer, but the more I built, the more I
