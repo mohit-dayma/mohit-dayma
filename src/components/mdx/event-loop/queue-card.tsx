@@ -29,7 +29,7 @@ export const QueueCard = ({ title, items, emptyLabel }: QueueCardProps) => {
                   'rounded-md border px-2 py-1 text-xs md:text-sm',
                   index === 0
                     ? 'border-line bg-surface text-foreground'
-                    : 'border-line-subtle text-faint'
+                    : 'border-line-subtle text-faint',
                 )}
               >
                 {item}

@@ -16,7 +16,7 @@ export const Callout = ({ children, type = 'info' }: CalloutProps) => {
     <div
       className={twMerge(
         'my-6 rounded-lg border px-4 py-3 text-sm leading-relaxed md:text-base',
-        colorByType[type]
+        colorByType[type],
       )}
     >
       {children}

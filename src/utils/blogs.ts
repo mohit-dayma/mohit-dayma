@@ -10,6 +10,7 @@ export interface BlogPost {
   excerpt: string;
   publishedAt: string;
   readTime: string;
+  coverImage?: string;
   tags: string[];
   content: string;
 }
@@ -19,6 +20,7 @@ interface Frontmatter {
   excerpt?: string;
   publishedAt?: string | Date;
   readTime?: string;
+  coverImage?: string;
   tags?: string[] | string;
 }
 
@@ -58,6 +60,7 @@ const getPostFromFile = (fileName: string): BlogPost | null => {
     excerpt: frontmatter.excerpt || '',
     publishedAt: normalizePublishedAt(frontmatter.publishedAt),
     readTime: frontmatter.readTime || '5 min read',
+    coverImage: frontmatter.coverImage || undefined,
     tags: normalizeTags(frontmatter.tags),
     content: content.trim(),
   };

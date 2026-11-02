@@ -16,10 +16,11 @@ export const timeoutScenario: EventLoopScenario = {
     },
     {
       title: 'A 1000ms timeout is scheduled',
-      explanation: 'This callback cannot run before at least 1000ms.',
+      explanation:
+        'The browser starts a 1000ms timer. The callback enters the task queue only when the timer expires.',
       stack: ['global()'],
       microtaskQueue: [],
-      taskQueue: [{ id: 't1', label: 'timeout(1000) -> "T1 ~1000ms" (waiting timer)' }],
+      taskQueue: [],
       output: [],
     },
     {
@@ -27,10 +28,7 @@ export const timeoutScenario: EventLoopScenario = {
       explanation: '0ms means minimum delay, not immediate execution.',
       stack: ['global()'],
       microtaskQueue: [],
-      taskQueue: [
-        { id: 't1', label: 'timeout(1000) -> "T1 ~1000ms" (waiting timer)' },
-        { id: 't2', label: 'timeout(0) -> "T2 ~0ms"' },
-      ],
+      taskQueue: [{ id: 't2', label: 'timeout(0) -> "T2 ~0ms"' }],
       output: [],
     },
     {
@@ -38,10 +36,7 @@ export const timeoutScenario: EventLoopScenario = {
       explanation: 'Promise.then goes to microtask queue.',
       stack: ['global()'],
       microtaskQueue: [{ id: 'm1', label: 'promise callback -> "Microtask"' }],
-      taskQueue: [
-        { id: 't1', label: 'timeout(1000) -> "T1 ~1000ms" (waiting timer)' },
-        { id: 't2', label: 'timeout(0) -> "T2 ~0ms"' },
-      ],
+      taskQueue: [{ id: 't2', label: 'timeout(0) -> "T2 ~0ms"' }],
       output: [],
     },
     {
@@ -49,10 +44,7 @@ export const timeoutScenario: EventLoopScenario = {
       explanation: 'console.log("Sync end") executes during script.',
       stack: ['global()', 'console.log("Sync end")'],
       microtaskQueue: [{ id: 'm1', label: 'promise callback -> "Microtask"' }],
-      taskQueue: [
-        { id: 't1', label: 'timeout(1000) -> "T1 ~1000ms" (waiting timer)' },
-        { id: 't2', label: 'timeout(0) -> "T2 ~0ms"' },
-      ],
+      taskQueue: [{ id: 't2', label: 'timeout(0) -> "T2 ~0ms"' }],
       output: ['Sync end'],
     },
     {
@@ -60,10 +52,7 @@ export const timeoutScenario: EventLoopScenario = {
       explanation: 'After stack clears, microtask runs before any timeout.',
       stack: ['promise callback'],
       microtaskQueue: [],
-      taskQueue: [
-        { id: 't1', label: 'timeout(1000) -> "T1 ~1000ms" (waiting timer)' },
-        { id: 't2', label: 'timeout(0) -> "T2 ~0ms"' },
-      ],
+      taskQueue: [{ id: 't2', label: 'timeout(0) -> "T2 ~0ms"' }],
       output: ['Sync end', 'Microtask'],
     },
     {
@@ -71,7 +60,16 @@ export const timeoutScenario: EventLoopScenario = {
       explanation: 'Now task queue callback with 0ms delay runs.',
       stack: ['timeout(0) callback'],
       microtaskQueue: [],
-      taskQueue: [{ id: 't1', label: 'timeout(1000) -> "T1 ~1000ms" (waiting timer)' }],
+      taskQueue: [],
+      output: ['Sync end', 'Microtask', 'T2 ~0ms'],
+    },
+    {
+      title: '1000ms timer expires',
+      explanation:
+        'After at least 1000ms, the timer puts its callback in the task queue.',
+      stack: [],
+      microtaskQueue: [],
+      taskQueue: [{ id: 't1', label: 'timeout(1000) -> "T1 ~1000ms"' }],
       output: ['Sync end', 'Microtask', 'T2 ~0ms'],
     },
     {

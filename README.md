@@ -20,11 +20,11 @@ I care about the details that make products feel sharp — performance, accessib
 
 ### Selected work
 
-| Project | Description | Stack | Link |
-|---------|-------------|-------|------|
-| **Bugbook** | 𝕏-style social feed with timeline, interactions, and solid client-server state | Next.js, Tailwind, Prisma, React Query | [Live](https://bugbook-62ez.vercel.app/) |
-| **Netflix + GPT** | Netflix clone with GPT-powered search + TMDB data | React, Tailwind, Firebase | [Live](https://nettflixgpt.netlify.app) |
-| **YouTube Clone** | Debounced search, nested comments, clean responsive layout | React, Tailwind | [Live](https://advancedyoutube.netlify.app) |
+| Project           | Description                                                                    | Stack                                  | Link                                        |
+| ----------------- | ------------------------------------------------------------------------------ | -------------------------------------- | ------------------------------------------- |
+| **Bugbook**       | 𝕏-style social feed with timeline, interactions, and solid client-server state | Next.js, Tailwind, Prisma, React Query | [Live](https://bugbook-62ez.vercel.app/)    |
+| **Netflix + GPT** | Netflix clone with GPT-powered search + TMDB data                              | React, Tailwind, Firebase              | [Live](https://nettflixgpt.netlify.app)     |
+| **YouTube Clone** | Debounced search, nested comments, clean responsive layout                     | React, Tailwind                        | [Live](https://advancedyoutube.netlify.app) |
 
 More on my [portfolio](https://mohitd.com).
 

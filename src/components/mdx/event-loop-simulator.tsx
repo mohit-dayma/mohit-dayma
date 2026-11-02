@@ -89,7 +89,9 @@ export const EventLoopSimulator = ({
           <p className="text-xs uppercase tracking-[0.14em] text-muted">
             Interactive Event Loop Demo
           </p>
-          <h4 className="mt-1 text-lg font-semibold text-white md:text-xl">{title}</h4>
+          <h4 className="mt-1 text-lg font-semibold text-white md:text-xl">
+            {title}
+          </h4>
           <p className="mt-1 text-sm text-muted">{subtitle}</p>
         </div>
         <div className="p-4 text-center text-sm text-muted md:p-5">
@@ -105,8 +107,10 @@ export const EventLoopSimulator = ({
         <p className="text-xs uppercase tracking-[0.14em] text-muted">
           Interactive Event Loop Demo
         </p>
-        <h4 className="mt-1 text-lg font-semibold text-white md:text-xl">{title}</h4>
-          <p className="mt-1 text-sm text-muted">{subtitle}</p>
+        <h4 className="mt-1 text-lg font-semibold text-white md:text-xl">
+          {title}
+        </h4>
+        <p className="mt-1 text-sm text-muted">{subtitle}</p>
       </div>
 
       <div className="grid gap-4 p-4 md:grid-cols-2 md:gap-5 md:p-5">
@@ -181,7 +185,7 @@ export const EventLoopSimulator = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="mt-3 text-sm text-muted"
+            className="mt-3 text-sm text-muted"
           >
             {currentStep.explanation}
           </motion.p>
@@ -223,7 +227,9 @@ export const EventLoopSimulator = ({
                 className="space-y-1 text-sm text-white/90"
               >
                 {currentStep.output.map((line, index) => (
-                  <li key={`${line}-${index}`}>{index + 1}. {line}</li>
+                  <li key={`${line}-${index}`}>
+                    {index + 1}. {line}
+                  </li>
                 ))}
               </motion.ol>
             ) : (
@@ -245,8 +251,14 @@ export const EventLoopSimulator = ({
   );
 };
 
-export const EventLoopSimpleDemo = () => <EventLoopSimulator {...simpleScenario} />;
+export const EventLoopSimpleDemo = () => (
+  <EventLoopSimulator {...simpleScenario} />
+);
 
-export const EventLoopComplexDemo = () => <EventLoopSimulator {...complexScenario} />;
+export const EventLoopComplexDemo = () => (
+  <EventLoopSimulator {...complexScenario} />
+);
 
-export const EventLoopTimeoutDemo = () => <EventLoopSimulator {...timeoutScenario} />;
+export const EventLoopTimeoutDemo = () => (
+  <EventLoopSimulator {...timeoutScenario} />
+);

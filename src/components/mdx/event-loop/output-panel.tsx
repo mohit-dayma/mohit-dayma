@@ -11,8 +11,9 @@ export const OutputPanel = ({ expectedOrder }: OutputPanelProps) => {
   const [mode, setMode] = useState<'practice' | 'expected'>('practice');
 
   const orderPreview = useMemo(
-    () => expectedOrder.map((entry, index) => `${index + 1}. ${entry}`).join('\n'),
-    [expectedOrder]
+    () =>
+      expectedOrder.map((entry, index) => `${index + 1}. ${entry}`).join('\n'),
+    [expectedOrder],
   );
 
   const isPractice = mode === 'practice';

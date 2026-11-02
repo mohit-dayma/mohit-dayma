@@ -1,27 +1,27 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowUpRightIcon } from "lucide-react";
-import { Header } from "@/sections/header";
-import { getAllPosts } from "@/utils/blogs";
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { ArrowUpRightIcon } from 'lucide-react';
+import { Header } from '@/sections/header';
+import { getAllPosts } from '@/utils/blogs';
 
 export const metadata: Metadata = {
-  title: "Blog | Mohit Dayma",
-  description: "Notes on frontend engineering, design systems, and product UX.",
+  title: 'Blog | Mohit Dayma',
+  description: 'Notes on frontend engineering, design systems, and product UX.',
 };
 
 const formatDate = (date: string) =>
-  new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
+  new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
   }).format(new Date(date));
 
 export default function BlogPage() {
   const posts = getAllPosts();
 
   return (
-    <main className="shell min-h-screen pb-20 pt-10 md:pt-14">
+    <main className="shell min-h-screen pb-20 pt-28 md:pt-32">
       <Header />
       <section>
         <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
@@ -49,7 +49,7 @@ export default function BlogPage() {
             </div>
             <p className="line-clamp-2 text-sm text-muted">{post.excerpt}</p>
             <p className="font-mono text-xs text-faint">
-              {post.tags.join(" · ")}
+              {post.tags.join(' · ')}
             </p>
           </Link>
         ))}
