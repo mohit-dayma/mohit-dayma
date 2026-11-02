@@ -12,6 +12,7 @@ export const siteConfig = {
     'Interactive deep dives on JavaScript internals, system design and frontend engineering by Mohit Dayma.',
   twitterHandle: '@Mohit13_10',
   ogImage: '/og',
+  rssPath: '/rss.xml',
   locale: 'en_US',
 } as const;
 
@@ -58,7 +59,14 @@ export const buildPageMetadata = ({
   return {
     title: absoluteTitle ? { absolute: title } : title,
     description,
-    alternates: { canonical: path },
+    alternates: {
+      canonical: path,
+      types: {
+        'application/rss+xml': [
+          { url: siteConfig.rssPath, title: `${siteConfig.name} – Blog` },
+        ],
+      },
+    },
     openGraph: {
       title,
       description,

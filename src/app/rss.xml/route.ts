@@ -13,7 +13,7 @@ const escapeXml = (value: string) =>
 
 export function GET() {
   const posts = getAllPosts();
-  const feedUrl = absoluteUrl('/blog/rss.xml');
+  const feedUrl = absoluteUrl(siteConfig.rssPath);
 
   const items = posts
     .map((post) => {
