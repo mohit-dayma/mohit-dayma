@@ -14,7 +14,7 @@ tags:
 
 JavaScript runs your code on one thread with one call stack. It still handles timers, network responses, and clicks without blocking, because those callbacks wait in queues until the stack is free. The event loop decides which callback runs next.
 
-Once you know its rule, you can predict the output of any async snippet before you run it.
+Once you know its rule, you can predict the output of an async snippet when you know when its callbacks get queued, as with the fixed timer delays in the examples below. You cannot predict the order of external events, such as which of two network responses arrives first.
 
 <Callout type="info">
   When the call stack is empty, the event loop runs every microtask in the
@@ -26,7 +26,7 @@ Once you know its rule, you can predict the output of any async snippet before y
 The event loop moves callbacks between three structures:
 
 - **Call stack.** The stack holds the function that is running now and the functions that called it. Synchronous code runs here. The last function pushed is the first to finish (LIFO).
-- **Task queue.** The queue holds callbacks from `setTimeout`, `setInterval`, DOM events, and I/O. Some articles call it the macrotask queue. The first callback queued runs first (FIFO).
+- **Task queue.** The queue holds callbacks from `setTimeout`, `setInterval`, DOM events, and I/O. Some articles call it the macrotask queue. Callbacks from the same source, such as two timers, run in the order they were queued (FIFO). The browser can pick callbacks from different sources in a different order.
 - **Microtask queue.** The queue holds callbacks from `Promise.then`, `Promise.catch`, `Promise.finally`, `queueMicrotask`, and `MutationObserver`. It is also FIFO.
 
 A microtask is not faster than a task. It has higher priority. The event loop empties the whole microtask queue before it takes a single task, and that includes microtasks queued while the queue drains.
@@ -65,7 +65,7 @@ The script queues a 1000 ms timeout and then a 0 ms timeout. It also queues a mi
 
 The output is `Sync end`, `Microtask`, `T2 ~0ms`, `T1 ~1000ms`. The script starts the 1000 ms timer first, but its callback enters the task queue only after 1000 ms pass, so `T2` runs before it.
 
-The elapsed time that `T1` logs is 1000 or more, never less. The timer puts the callback in the task queue after the delay. The callback runs when the stack is empty and the tasks ahead of it have finished. If synchronous code keeps the stack busy for two seconds, `T1` runs after two seconds.
+`T1` never runs before 1000 ms have passed. The timer puts the callback in the task queue after the delay. (The number it logs comes from `Date.now()`, which reads the system clock, so a clock adjustment can make it read lower.) The callback runs when the stack is empty and the tasks ahead of it have finished. If synchronous code keeps the stack busy for two seconds, `T1` runs after two seconds.
 
 ## What to check when you predict output
 

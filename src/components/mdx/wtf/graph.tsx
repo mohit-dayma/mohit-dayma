@@ -1,6 +1,6 @@
 'use client';
 
-import { useId } from 'react';
+import { useId, type KeyboardEvent } from 'react';
 import type { GraphEdge, GraphNode, GraphPositions } from './types';
 
 interface GraphCanvasProps {
@@ -43,7 +43,7 @@ export const GraphCanvas = ({
     <svg
       viewBox="0 0 640 300"
       className={className}
-      role="img"
+      role={onSelectNode ? 'group' : 'img'}
       aria-label="Social graph with follows as directed arrows"
     >
       <defs>
@@ -125,8 +125,20 @@ export const GraphCanvas = ({
         return (
           <g
             key={node.id}
-            onClick={() => onSelectNode?.(node.id)}
-            className={onSelectNode ? 'cursor-pointer' : undefined}
+            {...(onSelectNode && {
+              role: 'button',
+              tabIndex: 0,
+              'aria-label': `Select ${node.label}`,
+              'aria-pressed': isActive,
+              className: 'cursor-pointer',
+              onClick: () => onSelectNode(node.id),
+              onKeyDown: (event: KeyboardEvent<SVGGElement>) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onSelectNode(node.id);
+                }
+              },
+            })}
           >
             {(isHighlighted || isUpdated) && (
               <circle

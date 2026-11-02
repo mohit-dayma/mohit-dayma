@@ -4,48 +4,38 @@ import { useEffect, useState } from 'react';
 
 export const useStepper = (length: number, intervalMs = 1100) => {
   const [stepIndex, setStepIndex] = useState(0);
-  const [isAutoplay, setIsAutoplay] = useState(false);
+  const [autoplayRequested, setAutoplayRequested] = useState(false);
 
   const isLast = length === 0 || stepIndex === length - 1;
   const canGoBack = stepIndex > 0;
   const canGoNext = !isLast;
+  // Autoplay stops by itself on the last step, so updaters stay pure.
+  const isAutoplay = autoplayRequested && !isLast;
 
   useEffect(() => {
-    if (!isAutoplay || isLast) {
+    if (!isAutoplay) {
       return;
     }
 
     const timer = window.setInterval(() => {
-      setStepIndex((prev) => {
-        if (prev >= length - 1) {
-          setIsAutoplay(false);
-          window.clearInterval(timer);
-          return prev;
-        }
-
-        const next = prev + 1;
-        if (next >= length - 1) {
-          setIsAutoplay(false);
-        }
-        return next;
-      });
+      setStepIndex((prev) => Math.min(prev + 1, length - 1));
     }, intervalMs);
 
     return () => window.clearInterval(timer);
-  }, [isAutoplay, isLast, length, intervalMs]);
+  }, [isAutoplay, length, intervalMs]);
 
   const reset = () => {
-    setIsAutoplay(false);
+    setAutoplayRequested(false);
     setStepIndex(0);
   };
 
   const previous = () => {
-    setIsAutoplay(false);
+    setAutoplayRequested(false);
     setStepIndex((prev) => Math.max(0, prev - 1));
   };
 
   const next = () => {
-    setIsAutoplay(false);
+    setAutoplayRequested(false);
     setStepIndex((prev) => Math.min(length - 1, prev + 1));
   };
 
@@ -56,11 +46,11 @@ export const useStepper = (length: number, intervalMs = 1100) => {
 
     if (!isAutoplay && isLast) {
       setStepIndex(0);
-      setIsAutoplay(true);
+      setAutoplayRequested(true);
       return;
     }
 
-    setIsAutoplay((prev) => !prev);
+    setAutoplayRequested(!isAutoplay);
   };
 
   return {
