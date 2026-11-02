@@ -4,9 +4,11 @@ import Link from 'next/link';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { notFound } from 'next/navigation';
 import rehypeHighlight from 'rehype-highlight';
+import { JsonLd } from '@/components/json-ld';
 import { blogMdxComponents } from '@/components/mdx/blog-mdx-components';
 import { Header } from '@/sections/header';
-import { getAllPosts, getPostBySlug } from '@/utils/blogs';
+import { getAllPosts, getPostBySlug, type BlogPost } from '@/utils/blogs';
+import { absoluteUrl, buildPageMetadata, siteConfig } from '@/utils/site';
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -37,26 +39,76 @@ export async function generateMetadata({
     };
   }
 
-  return {
-    title: `${post.title} | Mohit Dayma`,
+  const fullTitle = `${post.title} | ${siteConfig.name}`;
+
+  return buildPageMetadata({
+    title: post.title,
     description: post.excerpt,
-    openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      type: 'article',
-      ...(post.coverImage && {
-        images: [
-          {
-            url: post.coverImage,
-            width: 1672,
-            height: 941,
-            alt: post.title,
-          },
-        ],
-      }),
+    path: `/blog/${post.slug}`,
+    type: 'article',
+    publishedTime: post.publishedAt,
+    modifiedTime: post.updatedAt,
+    tags: post.tags,
+    // Keep the <title> within ~60 chars so Google doesn't truncate it.
+    absoluteTitle: fullTitle.length > 60,
+    ...(post.coverImage && {
+      image: {
+        url: post.coverImage,
+        width: 1672,
+        height: 941,
+        alt: post.coverAlt ?? post.title,
+      },
+    }),
+  });
+}
+
+const blogPostingJsonLd = (post: BlogPost) => {
+  const url = absoluteUrl(`/blog/${post.slug}`);
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt,
+    url,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt ?? post.publishedAt,
+    keywords: post.tags.join(', '),
+    image: absoluteUrl(post.coverImage ?? siteConfig.ogImage),
+    author: {
+      '@type': 'Person',
+      '@id': `${siteConfig.url}/#person`,
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    publisher: {
+      '@type': 'Person',
+      '@id': `${siteConfig.url}/#person`,
+      name: siteConfig.name,
     },
   };
-}
+};
+
+const breadcrumbJsonLd = (post: BlogPost) => ({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: absoluteUrl('/') },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Blog',
+      item: absoluteUrl('/blog'),
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: post.title,
+      item: absoluteUrl(`/blog/${post.slug}`),
+    },
+  ],
+});
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
@@ -73,6 +125,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <main className="shell min-h-screen pb-20 pt-28 md:pt-32">
+      <JsonLd data={blogPostingJsonLd(post)} />
+      <JsonLd data={breadcrumbJsonLd(post)} />
       <Header />
       <article className="max-w-none">
         <Link
@@ -85,16 +139,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           {post.title}
         </h1>
         <p className="mt-3 font-mono text-xs text-faint">
-          {[formatDate(post.publishedAt), post.readTime, ...post.tags].join(
-            ' · ',
-          )}
+          <time dateTime={post.publishedAt}>
+            {formatDate(post.publishedAt)}
+          </time>
+          {' · '}
+          {[post.readTime, ...post.tags].join(' · ')}
         </p>
 
         {post.coverImage && (
           <div className="mt-10 overflow-hidden rounded-lg border border-line-subtle">
             <Image
               src={post.coverImage}
-              alt="Abstract directed social graph with a highlighted recommendation path"
+              alt={post.coverAlt ?? ''}
               width={1672}
               height={941}
               sizes="(max-width: 768px) 100vw, 768px"
@@ -116,8 +172,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           />
         </div>
 
+        <aside className="mt-14 border-t border-line-subtle pt-6 text-sm text-muted">
+          Written by{' '}
+          <Link href="/" className="link">
+            {siteConfig.name}
+          </Link>
+          , a software developer working with React, Next.js, React Native and
+          NestJS. More posts on the{' '}
+          <Link href="/blog" className="link">
+            blog
+          </Link>
+          .
+        </aside>
+
         {(previousPost || nextPost) && (
-          <nav className="mt-14 grid gap-6 border-t border-line-subtle pt-6 md:grid-cols-2">
+          <nav className="mt-10 grid gap-6 border-t border-line-subtle pt-6 md:grid-cols-2">
             {previousPost ? (
               <Link href={`/blog/${previousPost.slug}`} className="group">
                 <p className="font-mono text-xs text-faint">Previous</p>

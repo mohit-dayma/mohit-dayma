@@ -1,7 +1,60 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { JsonLd } from '@/components/json-ld';
 import { Header } from '@/sections/header';
 import { PlaneFlyover } from '@/components/plane-flyover';
+import { getAllPosts } from '@/utils/blogs';
 import { footerLinks, portfolioProjects } from '@/utils/constants';
+import {
+  absoluteUrl,
+  buildPageMetadata,
+  siteConfig,
+  socialProfiles,
+} from '@/utils/site';
+
+export const metadata: Metadata = buildPageMetadata({
+  title: siteConfig.title,
+  description: siteConfig.description,
+  path: '/',
+  absoluteTitle: true,
+});
+
+const homeJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': `${siteConfig.url}/#person`,
+      name: siteConfig.name,
+      url: siteConfig.url,
+      jobTitle: siteConfig.jobTitle,
+      description: siteConfig.description,
+      image: absoluteUrl(siteConfig.ogImage),
+      sameAs: socialProfiles,
+      knowsAbout: [
+        'React',
+        'Next.js',
+        'TypeScript',
+        'Tailwind CSS',
+        'React Native',
+        'NestJS',
+        'Node.js',
+        'n8n',
+        'Blender',
+      ],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${siteConfig.url}/#website`,
+      name: siteConfig.name,
+      url: siteConfig.url,
+      description: siteConfig.description,
+      inLanguage: 'en',
+      publisher: { '@id': `${siteConfig.url}/#person` },
+    },
+  ],
+};
 
 // lucide-react v1 dropped brand icons, so these are inline Simple Icons paths.
 const brandIcon = (path: string) => {
@@ -30,9 +83,20 @@ const socialIcons = {
   ),
 };
 
+const formatDate = (date: string) =>
+  new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(date));
+
 export default function Home() {
+  const posts = getAllPosts();
+
   return (
     <>
+      <JsonLd data={homeJsonLd} />
       <script type="module" src="/vendor/model-viewer.min.js" async />
       <PlaneFlyover />
       <main className="relative z-10">
@@ -41,21 +105,22 @@ export default function Home() {
           <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
             Mohit Dayma
           </h1>
+          <p className="mt-2 text-lg text-foreground/90">
+            Software developer building web and mobile apps with React, Next.js,
+            React Native and NestJS.
+          </p>
           <p className="mt-3 leading-relaxed text-muted">
-            I am Mohit, I started as Frontend Developer, but as worked more I
-            became fascinated with software as a whole subject no matter what
-            that is. No matter what that is Backend, Databases, Devops
-            (didn&apos;t do this much). I have worked with various technologies
-            &amp; tools.
+            I started as a frontend developer, but the more I built, the more I
+            got fascinated by software as a whole: backend, databases and a
+            little DevOps. These days I work across the stack with React,
+            Next.js, Tailwind, React Native, NestJS and n8n.
             <br />
-            <br /> Here is a list of them React, NextJS, Tailwind, React Native,
-            NestJS, n8n <br />
             <br />
-            Before starting programming I was learning{' '}
+            Before programming I was learning{' '}
             <a href="https://www.blender.org/" className="link">
               Blender
             </a>
-            , the aeroplane is a first thing I build watching a youtube
+            . The aeroplane was the first thing I built, following a YouTube
             tutorial.
           </p>
           <div
@@ -115,6 +180,45 @@ export default function Home() {
               ))}
             </div>
           </section>
+          {posts.length > 0 && (
+            <section id="writing" className="mt-12 scroll-mt-20">
+              <div className="flex items-baseline justify-between">
+                <h2 className="font-mono text-xs uppercase tracking-widest text-faint">
+                  Writing
+                </h2>
+                <Link
+                  href="/blog"
+                  className="text-xs text-muted transition-colors hover:text-foreground"
+                >
+                  All posts →
+                </Link>
+              </div>
+              <div className="mt-2 divide-y divide-line-subtle">
+                {posts.slice(0, 3).map((post) => (
+                  <Link
+                    key={post.slug}
+                    href={`/blog/${post.slug}`}
+                    className="group -mx-3 flex items-center justify-between gap-4 rounded-md px-3 py-4 transition-colors hover:bg-surface-hover"
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-base font-medium text-foreground transition-colors group-hover:text-white md:text-lg">
+                        {post.title}
+                      </span>
+                      <span className="mt-0.5 block truncate text-sm text-muted">
+                        {post.excerpt}
+                      </span>
+                    </span>
+                    <time
+                      dateTime={post.publishedAt}
+                      className="shrink-0 font-mono text-xs text-faint"
+                    >
+                      {formatDate(post.publishedAt)}
+                    </time>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </main>
     </>

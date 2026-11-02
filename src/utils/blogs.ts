@@ -9,8 +9,10 @@ export interface BlogPost {
   title: string;
   excerpt: string;
   publishedAt: string;
+  updatedAt?: string;
   readTime: string;
   coverImage?: string;
+  coverAlt?: string;
   tags: string[];
   content: string;
 }
@@ -19,8 +21,10 @@ interface Frontmatter {
   title?: string;
   excerpt?: string;
   publishedAt?: string | Date;
+  updatedAt?: string | Date;
   readTime?: string;
   coverImage?: string;
+  coverAlt?: string;
   tags?: string[] | string;
 }
 
@@ -36,12 +40,12 @@ const normalizeTags = (tags: Frontmatter['tags']): string[] => {
     .filter(Boolean);
 };
 
-const normalizePublishedAt = (publishedAt: Frontmatter['publishedAt']) => {
-  if (!publishedAt) return '';
-  if (publishedAt instanceof Date) {
-    return publishedAt.toISOString().slice(0, 10);
+const normalizeDate = (date: Frontmatter['publishedAt']) => {
+  if (!date) return '';
+  if (date instanceof Date) {
+    return date.toISOString().slice(0, 10);
   }
-  return String(publishedAt).trim();
+  return String(date).trim();
 };
 
 const getPostFromFile = (fileName: string): BlogPost | null => {
@@ -58,9 +62,11 @@ const getPostFromFile = (fileName: string): BlogPost | null => {
     slug: fileName.replace(/\.(md|mdx)$/i, ''),
     title: frontmatter.title,
     excerpt: frontmatter.excerpt || '',
-    publishedAt: normalizePublishedAt(frontmatter.publishedAt),
+    publishedAt: normalizeDate(frontmatter.publishedAt),
+    updatedAt: normalizeDate(frontmatter.updatedAt) || undefined,
     readTime: frontmatter.readTime || '5 min read',
     coverImage: frontmatter.coverImage || undefined,
+    coverAlt: frontmatter.coverAlt || undefined,
     tags: normalizeTags(frontmatter.tags),
     content: content.trim(),
   };
