@@ -1,8 +1,8 @@
 ---
 title: JavaScript Event Loop Explained with Interactive Examples
-excerpt: 'Learn call stack, task queue, and microtask queue through three interactive walkthroughs: simple ordering, nested async flow, and non-zero timeout behavior.'
+excerpt: 'Step through three interactive examples to see how the call stack, the task queue, and the microtask queue decide the order your code runs in.'
 publishedAt: 2026-02-15
-readTime: 8 min read
+readTime: 6 min read
 tags:
   - JavaScript
   - Event Loop
@@ -10,54 +10,67 @@ tags:
   - Browser Runtime
 ---
 
-## Why this matters
+## One thread, many callbacks
 
-JavaScript runs on a single call stack, but async APIs make it feel concurrent. The event loop is the mechanism that decides what runs next.
+JavaScript runs your code on one thread with one call stack. It still handles timers, network responses, and clicks without blocking, because those callbacks wait in queues until the stack is free. The event loop decides which callback runs next.
+
+Once you know its rule, you can predict the output of any async snippet before you run it.
 
 <Callout type="info">
-  Rule to remember: when the call stack becomes empty, JavaScript drains the
-  microtask queue first, then runs one task from the task queue, then repeats.
+  When the call stack is empty, the event loop runs every microtask in the
+  microtask queue. Then it runs one task from the task queue. Then it repeats.
 </Callout>
 
-## How JavaScript works (quick mental model)
+## Three structures decide the order
 
-JavaScript runs in a top-down, sequential way because it is single-threaded in the main runtime. That means statements are executed one by one on the call stack.
+The event loop moves callbacks between three structures:
 
-When async code is involved, the common execution pattern looks like:
+- **Call stack.** The stack holds the function that is running now and the functions that called it. Synchronous code runs here. The last function pushed is the first to finish (LIFO).
+- **Task queue.** The queue holds callbacks from `setTimeout`, `setInterval`, DOM events, and I/O. Some articles call it the macrotask queue. The first callback queued runs first (FIFO).
+- **Microtask queue.** The queue holds callbacks from `Promise.then`, `Promise.catch`, `Promise.finally`, `queueMicrotask`, and `MutationObserver`. It is also FIFO.
 
-1. Synchronous code
-2. Promise callbacks (microtasks)
-3. Timeout and interval callbacks (tasks/macrotasks)
+A microtask is not faster than a task. It has higher priority. The event loop empties the whole microtask queue before it takes a single task, and that includes microtasks queued while the queue drains.
 
-## The three building blocks
+## Example 1: sync code, then promises, then timeouts
 
-- **Call Stack**: current execution context. Synchronous code runs here.
-- **Task Queue (Macrotask Queue)**: a FIFO queue for `setTimeout`, `setInterval`, DOM events, and I/O callbacks.
-- **Microtask Queue**: a FIFO queue for `Promise.then/catch/finally`, `queueMicrotask`, and `MutationObserver`.
+The script logs `A` and `D` directly. It queues `B` with `setTimeout(..., 0)` and `C` with `Promise.resolve().then(...)`.
 
-The call stack itself behaves like **LIFO** (Last In, First Out), while both queues behave like **FIFO** (First In, First Out).
-
-## Example 1: Simple ordering
-
-The code mixes sync logs, a Promise callback, and a `setTimeout(0)` callback.
+Predict the output, then step through the demo.
 
 <EventLoopSimpleDemo />
 
-## Example 2: Slightly complex ordering
+The output is `A`, `D`, `C - promise`, `B - timeout`. Both synchronous logs run while the script is still on the stack. When the script ends, the microtask `C` runs, and only then does the event loop take the timeout `B` from the task queue. A delay of `0` does not mean "now". It means "in a later task".
 
-This version nests a microtask inside a timeout and a timeout inside a microtask.
+## Example 2: callbacks that queue more callbacks
+
+This script nests a microtask inside a timeout, and a timeout inside a microtask.
 
 <EventLoopComplexDemo />
 
-## Example 3: Timeout is not zero
+The output is `1`, `6`, `4`, `2`, `3`, `5`:
 
-This shows that `setTimeout(fn, 1000)` means **at least** 1000ms, not exactly 1000ms.
+1. The synchronous logs `1` and `6` run first.
+2. The stack is empty, so microtask `4` runs. It queues timeout `5` behind timeout `2`, which is already waiting.
+3. The event loop takes timeout `2`. Inside it, the promise queues microtask `3`.
+4. Timeout `2` finishes and the stack is empty again. Microtask `3` runs before the next task.
+5. The event loop takes timeout `5`.
+
+Step 4 is the one people get wrong. A microtask queued inside a task runs right after that task, before any other task, even one that was queued earlier.
+
+## Example 3: a timeout delay is a minimum
+
+The script queues a 1000 ms timeout and then a 0 ms timeout. It also queues a microtask and logs `Sync end`.
 
 <EventLoopTimeoutDemo />
 
-## Final checklist
+The output is `Sync end`, `Microtask`, `T2 ~0ms`, `T1 ~1000ms`. The script starts the 1000 ms timer first, but its callback enters the task queue only after 1000 ms pass, so `T2` runs before it.
 
-- Synchronous code runs first on the call stack.
-- After stack is empty, all microtasks run before the next task.
-- `setTimeout(..., 0)` still waits for a future task turn.
-- Timeout delay values are minimum thresholds, not exact execution timestamps.
+The elapsed time that `T1` logs is 1000 or more, never less. The timer puts the callback in the task queue after the delay. The callback runs when the stack is empty and the tasks ahead of it have finished. If synchronous code keeps the stack busy for two seconds, `T1` runs after two seconds.
+
+## What to check when you predict output
+
+- Synchronous code runs first, top to bottom, on the call stack.
+- When the stack is empty, every queued microtask runs before the next task.
+- A microtask queued during a task runs before the task after it.
+- `setTimeout(..., 0)` waits for a later task.
+- A timeout delay is the shortest wait, not an exact time.
