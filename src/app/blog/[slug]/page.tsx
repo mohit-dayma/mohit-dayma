@@ -173,19 +173,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           />
         </div>
 
-        <aside className="mt-14 border-t border-line-subtle pt-6 text-sm text-muted">
-          Written by{' '}
-          <Link href="/" className="link">
-            {siteConfig.name}
-          </Link>
-          , a software developer working with React, Next.js, React Native and
-          NestJS. More posts on the{' '}
-          <Link href="/blog" className="link">
-            blog
-          </Link>
-          .
-        </aside>
-
         {(previousPost || nextPost) && (
           <nav className="mt-10 grid gap-6 border-t border-line-subtle pt-6 md:grid-cols-2">
             {previousPost ? (
