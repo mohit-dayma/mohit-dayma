@@ -9,8 +9,10 @@ export interface BlogPost {
   title: string;
   excerpt: string;
   publishedAt: string;
+  updatedAt?: string;
   readTime: string;
   coverImage?: string;
+  coverAlt?: string;
   tags: string[];
   content: string;
 }
@@ -19,8 +21,10 @@ interface Frontmatter {
   title?: string;
   excerpt?: string;
   publishedAt?: string | Date;
+  updatedAt?: string | Date;
   readTime?: string;
   coverImage?: string;
+  coverAlt?: string;
   tags?: string[] | string;
 }
 
@@ -36,12 +40,23 @@ const normalizeTags = (tags: Frontmatter['tags']): string[] => {
     .filter(Boolean);
 };
 
-const normalizePublishedAt = (publishedAt: Frontmatter['publishedAt']) => {
-  if (!publishedAt) return '';
-  if (publishedAt instanceof Date) {
-    return publishedAt.toISOString().slice(0, 10);
+const normalizeDate = (date: Frontmatter['publishedAt']) => {
+  if (!date) return '';
+  if (date instanceof Date) {
+    return date.toISOString().slice(0, 10);
   }
-  return String(publishedAt).trim();
+  return String(date).trim();
+};
+
+const isValidDate = (date: string) =>
+  date !== '' && !Number.isNaN(new Date(date).getTime());
+
+/** Newest `updatedAt ?? publishedAt` across all posts, or undefined. */
+export const getLatestPostDate = (posts: BlogPost[]): Date | undefined => {
+  const timestamps = posts.map((post) =>
+    new Date(post.updatedAt ?? post.publishedAt).getTime(),
+  );
+  return timestamps.length ? new Date(Math.max(...timestamps)) : undefined;
 };
 
 const getPostFromFile = (fileName: string): BlogPost | null => {
@@ -54,13 +69,21 @@ const getPostFromFile = (fileName: string): BlogPost | null => {
     return null;
   }
 
+  const publishedAt = normalizeDate(frontmatter.publishedAt);
+  if (!isValidDate(publishedAt)) {
+    return null;
+  }
+  const updatedAt = normalizeDate(frontmatter.updatedAt);
+
   return {
     slug: fileName.replace(/\.(md|mdx)$/i, ''),
     title: frontmatter.title,
     excerpt: frontmatter.excerpt || '',
-    publishedAt: normalizePublishedAt(frontmatter.publishedAt),
+    publishedAt,
+    updatedAt: isValidDate(updatedAt) ? updatedAt : undefined,
     readTime: frontmatter.readTime || '5 min read',
     coverImage: frontmatter.coverImage || undefined,
+    coverAlt: frontmatter.coverAlt || undefined,
     tags: normalizeTags(frontmatter.tags),
     content: content.trim(),
   };

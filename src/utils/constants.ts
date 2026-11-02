@@ -1,6 +1,6 @@
 export const portfolioProjects = [
   {
-    title: 'Bugbook a 𝕏 clone',
+    title: 'Bugbook - an 𝕏 clone',
     year: '2023',
     link: 'https://bugbook-62ez.vercel.app/',
     description:
@@ -35,14 +35,14 @@ export const stack = [
 export const footerLinks = [
   {
     title: 'GitHub',
-    href: 'https://github.com/Mohit1310',
+    href: 'https://github.com/mohit-dayma',
   },
   {
     title: 'LinkedIn',
-    href: 'https://www.linkedin.com/in/mohit1310/',
+    href: 'https://www.linkedin.com/in/mohit-dayama/',
   },
   {
     title: 'X',
-    href: 'https://x.com/Mohit13_10',
+    href: 'https://x.com/mohitt_dayma',
   },
 ];
