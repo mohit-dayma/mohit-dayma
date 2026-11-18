@@ -46,7 +46,7 @@ export const LatencyLadder = () => {
     <WidgetFrame
       eyebrow="Interactive comparison"
       title="How far away is your data?"
-      description="Cost of one load, in CPU cycles, depending on where the data is found. Switch to a log scale to see the small values."
+      description="Cost of one load, measured in CPU clock cycles, depending on where the data is found. Switch to a log scale to see the small values."
     >
       <div className="space-y-4 p-4 md:p-5">
         <div className="flex flex-wrap gap-4">
@@ -74,7 +74,7 @@ export const LatencyLadder = () => {
           {levels.map((level) => (
             <div
               key={level.name}
-              className="grid grid-cols-[6.5rem_1fr_5rem] items-center gap-3 text-xs md:text-sm"
+              className="grid grid-cols-[5.5rem_1fr_6.5rem] items-center gap-3 text-xs md:grid-cols-[6.5rem_1fr_7.5rem] md:text-sm"
             >
               <span className="text-muted">{level.name}</span>
               <div className="h-3 overflow-hidden rounded-full bg-surface">
@@ -89,7 +89,12 @@ export const LatencyLadder = () => {
                   }}
                 />
               </div>
-              <span className="text-right font-mono">{level.label}</span>
+              <span className="text-right font-mono">
+                {level.label}{' '}
+                <span className="text-faint">
+                  {level.cycles === 1 ? 'cycle' : 'cycles'}
+                </span>
+              </span>
             </div>
           ))}
         </div>
