@@ -5,6 +5,11 @@ import {
   EventLoopSimpleDemo,
   EventLoopTimeoutDemo,
 } from './event-loop-simulator';
+import { AddressSplitter } from './memory/address-splitter';
+import { CacheSimulator } from './memory/cache-simulator';
+import { DramRowBuffer } from './memory/dram-row-buffer';
+import { LatencyLadder } from './memory/latency-ladder';
+import { DeepDive } from './shared/deep-dive';
 import { CircleOfTrust } from './wtf/circle-of-trust';
 import { ColdStartQueue } from './wtf/cold-start-queue';
 import { FacetGame } from './wtf/facet-game';
@@ -26,6 +31,7 @@ export const blogMdxComponents: MDXComponents = {
     <p className="text-base leading-relaxed text-muted md:text-lg" {...props} />
   ),
   ul: (props) => <ul className="list-disc space-y-2 pl-6" {...props} />,
+  ol: (props) => <ol className="list-decimal space-y-2 pl-6" {...props} />,
   li: (props) => <li className="text-muted" {...props} />,
   a: (props) => <a className="link" {...props} />,
   blockquote: (props) => (
@@ -64,4 +70,9 @@ export const blogMdxComponents: MDXComponents = {
   GraphExplorer,
   MemoryDecision,
   SalsaDemo,
+  DeepDive,
+  LatencyLadder,
+  DramRowBuffer,
+  AddressSplitter,
+  CacheSimulator,
 };

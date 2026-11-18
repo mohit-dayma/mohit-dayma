@@ -8,8 +8,8 @@ import {
   wtfNodes,
 } from './data';
 import { GraphCanvas } from './graph';
-import { StepControls } from './stepper-controls';
-import { useStepper } from './use-stepper';
+import { StepControls } from '../shared/stepper-controls';
+import { useStepper } from '../shared/use-stepper';
 
 const nodeLabel = (id: string) =>
   wtfNodes.find((node) => node.id === id)?.label ?? `@${id}`;
