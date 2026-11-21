@@ -96,7 +96,7 @@ export const Ram = () => {
       <Reveal t={c.on('intro')}>
         <Heading>Two kinds of RAM</Heading>
       </Reveal>
-      <div style={{ display: 'flex', gap: 50, marginTop: 36 }}>
+      <div style={{ display: 'flex', gap: 50, marginTop: 28 }}>
         {[
           {
             cue: 'sram',
@@ -177,7 +177,7 @@ export const Ram = () => {
         ))}
       </div>
 
-      <Reveal t={costsOn} style={{ marginTop: 32 }}>
+      <Reveal t={costsOn} style={{ marginTop: 22 }}>
         <Eyebrow>The price of DRAM's small size</Eyebrow>
       </Reveal>
       <div
@@ -196,7 +196,7 @@ export const Ram = () => {
             <Reveal key={cost.cue} t={c.on(cost.cue)}>
               <Panel
                 accent={active ? color.amber : undefined}
-                style={{ padding: '16px 28px' }}
+                style={{ padding: '12px 28px' }}
               >
                 <span
                   style={{ fontFamily: mono, color: color.amber, fontSize: 28 }}
