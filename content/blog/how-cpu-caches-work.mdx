@@ -1,0 +1,267 @@
+---
+title: 'How CPU Caches Work: Memory Series, Part 1'
+excerpt: 'Why main memory is slow, how caches hide it, and how a cache decides where each line goes. Part 1 of an interactive guide to "What Every Programmer Should Know About Memory".'
+publishedAt: 2026-11-18
+readTime: 16 min read
+tags:
+  - Computer Architecture
+  - CPU Caches
+  - Performance
+  - Memory
+---
+
+## About this series
+
+Ulrich Drepper's paper _What Every Programmer Should Know About Memory_ explains how memory hardware works and how code can work with it instead of against it. It is 114 pages long. This series covers its ideas in five parts, with interactive models where they help:
+
+1. **How CPU caches work** (this part)
+2. Measuring the cache hierarchy
+3. Writing cache-friendly code
+4. Virtual memory and the TLB
+5. Many cores: coherence and NUMA
+
+The paper was published in 2007. Its concepts still apply, but its hardware examples are dated. Where something has changed, this series says so.
+
+This part summarizes sections 1 and 2 of the paper and covers sections 3.1 to 3.3.1, 3.3.3, and 3.3.5. The paper's DRAM generation details (sections 2.2.3 and 2.2.4) are left out because they describe 2007 hardware. The measurements in section 3.3.2 are in Part 2, and multi-processor support (section 3.3.4) is in Part 5.
+
+## The processor waits for memory
+
+Until the early 1990s, a CPU core and its memory bus ran at similar speeds, and a memory access cost only a little more than a register access. Then CPU clock speeds rose much faster than memory speeds. Memory as fast as a CPU core can be built, but it costs orders of magnitude more than ordinary memory, so no commodity computer uses it for main memory.
+
+The result is a gap that has not closed. A load that finds its data in the closest cache takes a few cycles. A load that must go to main memory takes hundreds.
+
+<LatencyLadder />
+
+These costs are not always paid in full. A processor decodes instructions in a pipeline, and if it can start a load early enough, the load runs while other work continues. This often hides an L1d access completely, and on some processors an L2 access too. It fails when the address of the load is only known late, for example because another instruction computes it. Stores cost less: the processor can continue with the next instructions before the stored value reaches memory, as long as the program cannot tell the difference.
+
+The rest of this part explains where the gap comes from and how caches hide most of it.
+
+## Two kinds of RAM
+
+Computers use two kinds of random-access memory, and they differ in how a single bit is stored.
+
+- **Static RAM (SRAM)** stores a bit in a circuit of six transistors. The circuit holds its value for as long as it has power, and its value is readable almost immediately. SRAM is fast, but each bit takes a lot of chip area and constant power.
+- **Dynamic RAM (DRAM)** stores a bit as charge in a capacitor, guarded by one transistor. A DRAM cell is many times smaller than an SRAM cell, and the regular layout packs densely on a chip.
+
+DRAM's small size has four costs:
+
+- **Leakage.** The capacitor loses its charge quickly, so every cell must be refreshed, typically every 64 ms. While a refresh runs, that memory cannot be accessed.
+- **Destructive reads.** Reading a cell drains its capacitor. The chip must write the value back after every read.
+- **Weak signals.** A charged cell holds only tens of thousands of electrons. A sense amplifier must detect whether the cell holds a 0 or a 1.
+- **Slow charging.** A capacitor does not charge or drain instantly. The chip must wait until the signal is reliable, and this wait limits how fast DRAM can respond.
+
+Cost decides the outcome. Main memory is DRAM because it is cheap per bit. Caches are SRAM because they must be fast, and they are small because SRAM is expensive.
+
+## DRAM reads a whole row at a time
+
+A DRAM chip arranges its cells in a grid of rows and columns. A read happens in two steps:
+
+1. **Row activation.** The memory controller sends the row address. The chip copies the entire row into its sense amplifiers. This copy is called the row buffer, and the row is now open.
+2. **Column read.** The controller sends the column address on the same pins. The chip returns data from the open row.
+
+Sending the address in two halves saves pins, which matters on chips and memory controllers. It also creates a cost difference. A read from the row that is already open needs only the column step. A read from a different row must first close the open row (precharge), then activate the new one.
+
+<DramRowBuffer />
+
+So DRAM rewards sequential access. Once a row is open, the controller can also request a burst of consecutive words without sending a new address. Caches use this: they always fetch memory in fixed blocks that one burst can fill.
+
+<DeepDive title="Reading DRAM timing numbers">
+
+Memory modules list their timings in a form such as `2-3-2-8-T1`. Each number is a count of memory-bus clock cycles:
+
+- **CL (CAS latency), 2:** time from sending the column address until data appears.
+- **tRCD (RAS-to-CAS delay), 3:** time from activating a row until a column address can be sent.
+- **tRP (row precharge time), 2:** time to close the open row before another row can be activated.
+- **tRAS (active to precharge delay), 8:** minimum time a row must stay open before it can be closed.
+- **Command rate, T1:** the module accepts a new command every cycle.
+
+The widget above uses the first three numbers. A read from the open row costs CL. A read when no row is open costs tRCD + CL. A read from another row costs tRP + tRCD + CL.
+
+These delays add up at the system level. In the paper's example, a stream of reads that changes rows keeps the data bus busy for only 2 cycles out of every 7. A bus rated for 6.4 GB/s then delivers about 1.8 GB/s.
+
+The memory bus also runs much slower than the CPU core. In the paper's example, a 2.933 GHz Core 2 sits on a bus advertised as 1.066 GHz. That bus is quad-pumped: it transfers data four times per clock, so its real clock is about 266 MHz. The clock ratio is 11:1, so each bus cycle of waiting costs the core 11 cycles.
+
+**Since 2007:** DDR2 has given way to DDR4 and DDR5. Bandwidth has grown many times over. Latency measured in nanoseconds has changed much less, because the cell physics described above has not changed. Timing numbers on modern modules are larger, but each cycle is shorter.
+
+</DeepDive>
+
+<DeepDive title="How the paper's 2007 system was wired">
+
+The paper describes a common 2007 layout. All CPUs connect over a shared front-side bus (FSB) to a chip called the Northbridge, which contains the memory controller. A second chip, the Southbridge, connects devices such as disks, USB, and PCI Express cards.
+
+In that layout, every memory access from every CPU passes through the Northbridge. Devices also write to memory directly through direct memory access (DMA), which saves CPU time but competes with the CPUs for the same bandwidth.
+
+The paper also describes an alternative that was spreading at the time: a memory controller built into each CPU, with memory attached to each processor. Bandwidth then grows with the number of processors. The cost is that memory attached to another processor takes longer to reach. This is called non-uniform memory access (NUMA). The paper expected every multi-processor machine to use NUMA from late 2008 on. Part 5 covers it.
+
+**Since 2007:** mainstream CPUs now include the memory controller on the processor. The Northbridge and the FSB no longer exist as separate parts.
+
+</DeepDive>
+
+## Caches exploit locality
+
+One option for using a small amount of fast SRAM is to give it its own address range and let the operating system or programs decide what goes there. The paper explains why this fails: every program and library would have to manage the fast region, and the management overhead would cancel the gain.
+
+Instead, the processor manages SRAM automatically as a cache. A cache holds copies of recently used main-memory data, and programs do not have to know it exists. This works because most programs show locality:
+
+- **Temporal locality:** data or code used now is likely to be used again soon. Loops are the typical example.
+- **Spatial locality:** data near recently used data is likely to be used soon. Walking an array is the typical example.
+
+The paper gives a simple calculation. Assume a main-memory access costs 200 cycles and a cache access costs 15 cycles. A program uses 100 data elements 100 times each.
+
+- With no cache: 10,000 accesses × 200 cycles = 2,000,000 cycles.
+- With every element cached after first use: 100 × 200 + 9,900 × 15 = 168,500 cycles.
+
+That is 91.5% less time spent on memory.
+
+The limit is size. In the paper's experience, a cache was about one-thousandth the size of main memory: 4 MB of cache with 4 GB of RAM. The set of data a program uses during a period is called its **working set**. If the working set fits in the cache, the cache works well. If it does not, the cache must keep choosing what to evict, and the program's access pattern decides how well that goes.
+
+## The cache hierarchy
+
+The gap between cache speed and memory speed grew again after the first caches appeared. Making the first cache bigger would have made it slower and more expensive, so designers added a second level, larger and slower than the first. By 2007, some processors had three levels.
+
+- **L1d** holds data and **L1i** holds instructions. Code and data use different regions of memory, so separate caches work better. This is the smallest and fastest level.
+- **L2** is larger and slower. In the paper's era, it was often shared between cores.
+- **L3** is larger and slower again, and is shared by the cores on a chip.
+
+The levels are shared in a fixed pattern:
+
+- **Hardware threads** on one core share that core's L1 caches. Threads share almost all of a core's resources.
+- **Cores** have their own L1 caches and share the higher levels.
+- **Separate processors** share no caches at all.
+
+These sharing rules matter when several threads use the same memory. Part 5 covers that.
+
+A level can be **inclusive** or **exclusive**. In an inclusive design, every line in L1d is also in L2, so evicting a line from L1d is cheap. In an exclusive design, a line lives in only one level, so the total capacity is larger, but evicting from L1d means moving the line down to L2. In 2007, Intel used inclusive caches and AMD used exclusive ones.
+
+**Since 2007:** most current designs give each core a private L2 and share a large L3 between cores. Several designs no longer keep L3 strictly inclusive.
+
+## Caches store lines, not bytes
+
+A cache does not store single bytes or words. It stores **cache lines**: blocks of consecutive bytes, 64 bytes on most current processors. There are three reasons:
+
+- Each cached entry needs a tag that records which memory it holds. A tag for every 4-byte word would cost as much space as the data.
+- Spatial locality means neighbouring bytes are likely to be used soon anyway.
+- DRAM delivers a burst of consecutive words cheaply, as the previous section showed.
+
+When the processor needs any byte, it loads the whole line that contains it. Writes work the same way: to change 4 bytes, the processor first loads the whole line, because a cache cannot hold part of a line.
+
+The processor finds a line by splitting the memory address into three fields:
+
+- **Offset** (the lowest bits): the byte's position inside the line. A 64-byte line needs 6 bits.
+- **Set index** (the middle bits): which set of the cache the line belongs to. A cache with 2<sup>S</sup> sets needs S bits.
+- **Tag** (the remaining high bits): stored with the line, so the cache can tell apart the many addresses that map to the same set.
+
+The set-index bits are not stored, because every line in a set has the same value for them.
+
+<AddressSplitter />
+
+The sizes are related by one formula:
+
+```text
+cache size = line size × associativity × number of sets
+```
+
+The next section explains associativity.
+
+## Associativity: where a line can go
+
+Associativity is the number of places in the cache where a given line may be stored. There are three designs.
+
+**Fully associative.** Any line can go in any slot. To find a line, the cache compares the tag against every slot at once, which needs one comparator per slot. A 4 MB cache with 64-byte lines has 65,536 slots, which is far too many comparators to search in a few cycles. Fully associative caches only work when they are tiny, a few dozen entries at most. Some TLBs, covered in Part 4, are built this way.
+
+**Direct-mapped.** Each line can go in exactly one slot, chosen by the set-index bits. The cache needs only one comparator, so it is fast and cheap. But it only works well if a program's addresses are spread evenly across the slots. They usually are not. Two addresses that map to the same slot keep evicting each other while other slots sit empty. This is called a **conflict miss**.
+
+**Set-associative.** The cache is divided into sets, and each set has a small number of slots, called ways. The set index chooses a set, and the cache compares the tags of all ways in that set at once. In the paper's example, a 4 MB cache with 64-byte lines and 8 ways has 8,192 sets. It uses 13 address bits to select a set and compares 8 tags per lookup.
+
+When a set is full, the cache must evict a line. The usual policy evicts the **least recently used (LRU)** line.
+
+The simulator below runs three short loops through a 128-byte cache. The capacity stays the same, and only the associativity changes.
+
+<CacheSimulator />
+
+Try these combinations:
+
+- **Sequential scan, any associativity:** 4 misses and 12 hits. Each miss loads 16 bytes, which serves the next three ints for free. That is spatial locality.
+- **Reuse:** 2 misses, then hits for the rest of the passes. That is temporal locality.
+- **Conflicting arrays, direct-mapped:** `a`, `b`, and `c` are 128 bytes apart, which is exactly the cache size, so all three map to set 0. Every access misses, and the dirty lines of `a` are written back over and over.
+- **Conflicting arrays, 2-way:** still every access misses. Three lines compete for two ways, and LRU always evicts the line that is needed next.
+- **Conflicting arrays, 4-way:** 3 misses, then hits. All three lines fit in one set.
+
+### How much associativity helps
+
+The paper measured L2 misses for a gcc compilation while varying the cache size, line size, and associativity in a simulator. Its findings:
+
+- Going from direct-mapped to 2-way cut misses by almost 44% for an 8 MB cache.
+- Each further doubling of associativity helped less. Above 8 ways, the gains for a single-threaded program were small.
+- The claim that adding associativity has the same effect as doubling the cache size holds only in some cases.
+- Larger lines (64 bytes instead of 32) reduced misses at every size.
+
+Shared caches change the picture. When two hardware threads or cores share a cache, each one effectively gets a fraction of the ways. So caches shared by many cores need higher associativity.
+
+## Writes: write-back and dirty lines
+
+A cache must behave as if it were not there. After a write, every later read must see the new value, exactly as if the write had gone straight to main memory. There are two ways to guarantee this.
+
+- **Write-through:** every write to the cache is also written to main memory immediately. Memory is always up to date, so a line can be dropped at any time. The cost is memory traffic. A loop that updates a local variable repeatedly sends every update to memory, even though no one else reads it.
+- **Write-back:** a write only updates the cache and marks the line **dirty**. The line is written to memory only when it is evicted. Most memory in a modern system is cached this way, because it avoids most of that traffic. A processor may also write a dirty line back early when the bus is idle, so that a later eviction is cheaper.
+
+The simulator above is write-back. In the conflicting-arrays loop, watch the writebacks counter: each eviction of a dirty `a` line costs an extra memory write.
+
+Two other policies apply to special address ranges, and the operating system sets them up:
+
+- **Write-combining:** the processor gathers several writes to one line and sends them to memory together. It is used mainly for memory on devices such as graphics cards, where each transfer is expensive and writes to neighbouring addresses usually come in sequence.
+- **Uncacheable:** the processor never caches the address. This is used for addresses that do not correspond to RAM, such as registers of a device on PCI Express. Their contents can change without the CPU, and a write must take effect immediately.
+
+Write-back creates a problem on systems with more than one core. If one core holds a dirty line, another core reading that address from main memory would get a stale value. Processors solve this with a **cache coherence** protocol. The basic rules are:
+
+- A dirty line is present in only one cache.
+- Clean copies of a line can be present in any number of caches.
+
+Part 5 covers how the protocol (MESI) enforces these rules and what it costs.
+
+## Which address does the cache use?
+
+Programs use virtual addresses, and the processor translates each one into a physical address. Section 3.3.5 of the paper asks which of the two a cache should use.
+
+Virtual addresses are not unique. The same virtual address means different memory in different processes, and the mapping can change over time. Physical addresses avoid this, but the translation takes time, and the fastest caches cannot wait for it.
+
+In 2007, the paper's answer was:
+
+- **L1 caches** used virtual addresses, because their latency of about 3 cycles left no time for translation. They are small, so clearing them when mappings change is affordable.
+- **L2 and larger caches** used physical addresses. They are slower, so translation finishes in time, and they are too large to clear often.
+
+**Since 2007:** L1 data caches on current x86 processors use the virtual address to choose the set and the physical address as the tag (virtually indexed, physically tagged). This works because the set index and offset fit inside the 12-bit offset of a 4 KB page, which translation does not change. Select the 32 KB L1d preset in the tag, set, offset widget above: the set index and offset use exactly 12 bits. This is also why an L1d cache is usually 4 KB times its number of ways: 32 KB with 8 ways, or 48 KB with 12 ways. A bigger L1d at the same associativity would need set-index bits outside the page offset.
+
+The replacement policy is also mostly invisible to programs. The paper notes that true LRU becomes expensive to track as associativity grows, and that other strategies might be adopted.
+
+A programmer cannot control which physical addresses a program gets, so cannot control which sets its lines use. The paper gives two pieces of advice that help the operating system spread lines across sets:
+
+- Use each memory page completely, instead of touching only a small part of many pages.
+- Use larger pages where they make sense. Part 4 covers this.
+
+## What changed since 2007
+
+The concepts in this part still describe current hardware. These details have changed:
+
+- The memory controller is on the CPU. The Northbridge and the front-side bus are gone.
+- DDR5 has replaced DDR2. Bandwidth is much higher, but DRAM latency in nanoseconds has improved far less.
+- Most designs have a private L2 per core and a large shared L3.
+- 64-byte lines are still standard on x86. Some ARM designs, including Apple's, use 128-byte lines.
+- L1 data caches are virtually indexed and physically tagged.
+- Replacement policies approximate LRU instead of tracking it exactly.
+
+## What to remember
+
+- Main memory is DRAM because it is cheap. Caches are SRAM because they are fast. A main-memory access costs hundreds of cycles; an L1 hit costs a few.
+- DRAM is fastest when reads stay within an open row, so sequential access is cheaper than scattered access even before caches are involved.
+- Caches work because of temporal and spatial locality. They help only while the working set fits.
+- Caches move whole lines, usually 64 bytes. Reading one byte loads the whole line, and writing one byte requires the whole line.
+- An address splits into tag, set index, and offset. Addresses that are a multiple of (sets × line size) apart compete for the same set.
+- Set-associative caches limit conflict misses. Beyond about 8 ways, extra associativity helps a single thread very little.
+- Write-back caches mark lines dirty and write them to memory on eviction. Coherence keeps multiple cores consistent.
+
+The next part measures these effects: how access time changes as a working set outgrows each cache level, and why sequential access beats random access by so much.
+
+**Paper:** _What Every Programmer Should Know About Memory_ by Ulrich Drepper (Red Hat, 2007). This post summarizes the paper in original words and diagrams. Numbers attributed to the paper are quoted from it.
+
+[Read the original paper](https://www.akkadia.org/drepper/cpumemory.pdf)
