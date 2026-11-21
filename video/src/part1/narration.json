@@ -1,0 +1,550 @@
+{
+  "title": "How CPU Caches Work",
+  "subtitle": "Memory Series, Part 1",
+  "scenes": [
+    {
+      "id": "intro",
+      "chapter": null,
+      "segments": [
+        {
+          "id": "hook1",
+          "text": "Your CPU can do several things in a single clock cycle."
+        },
+        {
+          "id": "hook2",
+          "text": "But when the data it needs is in main memory, it can wait for hundreds of cycles."
+        },
+        {
+          "id": "hook3",
+          "text": "This video explains why that happens, and how caches hide most of the wait."
+        },
+        {
+          "id": "paper",
+          "text": "It is based on Ulrich Drepper's paper, What Every Programmer Should Know About Memory, from 2007."
+        },
+        {
+          "id": "scope",
+          "text": "This is part one of a five-part series. It covers memory hardware, and how a cache decides where each piece of data goes."
+        },
+        {
+          "id": "dated",
+          "text": "The paper's concepts still hold. Its hardware is dated, so when something has changed since 2007, I'll say so."
+        }
+      ]
+    },
+    {
+      "id": "latency",
+      "chapter": "The processor waits for memory",
+      "segments": [
+        {
+          "id": "history",
+          "text": "Until the early nineteen nineties, a CPU core and its memory bus ran at similar speeds."
+        },
+        {
+          "id": "split",
+          "text": "Then CPU clock speeds rose much faster than memory speeds."
+        },
+        {
+          "id": "cost",
+          "text": "Memory as fast as a CPU core can be built. But it costs orders of magnitude more, so no ordinary computer uses it for main memory."
+        },
+        {
+          "id": "ladder",
+          "text": "Here are the numbers from the paper, measured on a Pentium M. A register access takes about one cycle."
+        },
+        {
+          "id": "l1",
+          "text": "The first-level data cache, L1d, takes about three."
+        },
+        {
+          "id": "l2",
+          "text": "The second-level cache, L2, takes about fourteen."
+        },
+        {
+          "id": "mem",
+          "text": "Main memory takes about two hundred and forty cycles."
+        },
+        {
+          "id": "ratio",
+          "text": "So one trip to main memory costs as much as eighty loads from L1d."
+        },
+        {
+          "id": "today",
+          "text": "On a current desktop CPU, the numbers are larger in cycles, but the shape is the same: a few cycles nearby, hundreds far away."
+        },
+        {
+          "id": "hide",
+          "text": "These costs are not always paid in full. If the processor starts a load early enough, other work continues while the load runs."
+        },
+        {
+          "id": "hide2",
+          "text": "That often hides an L1d access completely. It fails when the address is only known late, for example when another instruction computes it."
+        }
+      ]
+    },
+    {
+      "id": "ram",
+      "chapter": "Two kinds of RAM",
+      "segments": [
+        {
+          "id": "intro",
+          "text": "Computers use two kinds of random-access memory. They differ in how one bit is stored."
+        },
+        {
+          "id": "sram",
+          "text": "Static RAM, or SRAM, stores a bit in a circuit of six transistors. It is fast, but each bit takes a lot of chip area and constant power."
+        },
+        {
+          "id": "dram",
+          "text": "Dynamic RAM, or DRAM, stores a bit as charge in a capacitor, guarded by one transistor. It is much smaller, and packs densely on a chip."
+        },
+        {
+          "id": "costs",
+          "text": "That small size has four costs."
+        },
+        {
+          "id": "leak",
+          "text": "First, the capacitor leaks. Every cell must be refreshed, typically every sixty-four milliseconds."
+        },
+        {
+          "id": "destroy",
+          "text": "Second, reading a cell drains it, so the value must be written back after every read."
+        },
+        {
+          "id": "weak",
+          "text": "Third, a cell holds only tens of thousands of electrons, so a sense amplifier must detect whether it holds a zero or a one."
+        },
+        {
+          "id": "slow",
+          "text": "Fourth, a capacitor does not charge or drain instantly, and that wait limits how fast DRAM can respond."
+        },
+        {
+          "id": "verdict",
+          "text": "Cost decides the outcome. Main memory is DRAM because it is cheap per bit. Caches are SRAM because they must be fast, and they are small because SRAM is expensive."
+        }
+      ]
+    },
+    {
+      "id": "dram",
+      "chapter": "DRAM reads a whole row at a time",
+      "segments": [
+        {
+          "id": "grid",
+          "text": "A DRAM chip arranges its cells in a grid of rows and columns. A read happens in two steps."
+        },
+        {
+          "id": "activate",
+          "text": "First, row activation. The chip copies the entire row into its sense amplifiers. That copy is the row buffer, and the row is now open."
+        },
+        {
+          "id": "column",
+          "text": "Second, the column read. The chip returns data from the open row."
+        },
+        {
+          "id": "rowhit",
+          "text": "A read from the row that is already open needs only the column step. With the paper's example module, that costs two bus cycles."
+        },
+        {
+          "id": "empty",
+          "text": "If no row is open, the chip must activate one first: three more cycles."
+        },
+        {
+          "id": "conflict",
+          "text": "A read from a different row is worst. The open row must be closed, which is called precharge, before the new one is activated: seven cycles in total."
+        },
+        {
+          "id": "seq",
+          "text": "So DRAM rewards sequential access. Once a row is open, the controller can read a burst of consecutive words without a new address."
+        },
+        {
+          "id": "burst",
+          "text": "Caches use this. They always fetch memory in fixed blocks that one burst can fill."
+        },
+        {
+          "id": "aside",
+          "text": "A short aside: the memory bus is also slower than the core. In the paper's example, a 2.933 gigahertz Core 2 runs eleven cycles for every bus cycle, so each bus cycle of waiting costs the core eleven."
+        },
+        {
+          "id": "today",
+          "text": "Since 2007, DDR2 has given way to DDR4 and DDR5. Bandwidth has grown many times over, but latency in nanoseconds has changed much less, because the cell physics has not changed."
+        }
+      ]
+    },
+    {
+      "id": "locality",
+      "chapter": "Caches exploit locality",
+      "segments": [
+        {
+          "id": "auto",
+          "text": "The processor manages its small SRAM automatically, as a cache. A cache holds copies of recently used memory, and programs do not need to know it exists."
+        },
+        {
+          "id": "why",
+          "text": "This works because most programs show locality."
+        },
+        {
+          "id": "temporal",
+          "text": "Temporal locality: data used now is likely to be used again soon. Loops are the typical example."
+        },
+        {
+          "id": "spatial",
+          "text": "Spatial locality: data near recently used data is likely to be used soon. Walking an array is the typical example."
+        },
+        {
+          "id": "example",
+          "text": "The paper gives a simple calculation. Assume main memory costs two hundred cycles, and the cache costs fifteen. A program uses one hundred data elements, one hundred times each."
+        },
+        {
+          "id": "nocache",
+          "text": "With no cache, that is ten thousand accesses at two hundred cycles each: two million cycles."
+        },
+        {
+          "id": "cache",
+          "text": "With a cache, the first use of each element costs two hundred cycles, and the other nine thousand nine hundred cost fifteen. That is one hundred sixty-eight thousand five hundred cycles."
+        },
+        {
+          "id": "saving",
+          "text": "That is ninety-one and a half percent less time spent on memory."
+        },
+        {
+          "id": "limit",
+          "text": "The limit is size. In the paper's experience, a cache was about one thousandth the size of main memory: four megabytes of cache with four gigabytes of RAM."
+        },
+        {
+          "id": "working",
+          "text": "The data a program uses during a period is called its working set. If the working set fits in the cache, the cache works well. If not, the cache must keep choosing what to evict."
+        }
+      ]
+    },
+    {
+      "id": "hierarchy",
+      "chapter": "The cache hierarchy",
+      "segments": [
+        {
+          "id": "levels",
+          "text": "Making one cache bigger would also make it slower, so designers added levels, each larger and slower than the one before."
+        },
+        {
+          "id": "l1",
+          "text": "L1 is split in two: L1d holds data, and L1i holds instructions. It is the smallest and fastest level."
+        },
+        {
+          "id": "l2",
+          "text": "L2 is larger and slower. In 2007 it was often shared between cores."
+        },
+        {
+          "id": "l3",
+          "text": "L3 is larger again, and shared by all the cores on a chip."
+        },
+        {
+          "id": "sharing",
+          "text": "Hardware threads on one core share that core's L1. Cores share the higher levels. Separate processors share no caches at all."
+        },
+        {
+          "id": "inclusive",
+          "text": "A level can be inclusive, where every line in L1d is also in L2. Or exclusive, where a line lives in only one level. In 2007, Intel used inclusive caches, and AMD used exclusive ones."
+        },
+        {
+          "id": "today",
+          "text": "Today, most designs give each core a private L2, and share a large L3 between cores."
+        }
+      ]
+    },
+    {
+      "id": "lines",
+      "chapter": "Caches store lines, not bytes",
+      "segments": [
+        {
+          "id": "lines",
+          "text": "A cache does not store single bytes. It stores cache lines: blocks of consecutive bytes, sixty-four bytes on most current processors."
+        },
+        {
+          "id": "tag",
+          "text": "There are three reasons. Each entry needs a tag that records which memory it holds, and a tag per word would cost as much as the data."
+        },
+        {
+          "id": "reasons",
+          "text": "Neighbouring bytes are likely to be used soon anyway. And DRAM delivers a burst of consecutive words cheaply."
+        },
+        {
+          "id": "whole",
+          "text": "So when the processor needs any byte, it loads the whole line. To change four bytes, it first loads the whole line too."
+        },
+        {
+          "id": "split",
+          "text": "To find a line, the processor splits the address into three fields."
+        },
+        {
+          "id": "offset",
+          "text": "The lowest bits are the offset: the byte's position inside the line. A sixty-four byte line needs six bits."
+        },
+        {
+          "id": "set",
+          "text": "The middle bits are the set index. They choose which set of the cache the line belongs to."
+        },
+        {
+          "id": "tagbits",
+          "text": "The remaining high bits are the tag. It is stored with the line, so the cache can tell apart the many addresses that share a set."
+        },
+        {
+          "id": "l2",
+          "text": "For the paper's four megabyte, eight-way cache, there are eight thousand one hundred ninety-two sets, so thirteen set bits."
+        },
+        {
+          "id": "formula",
+          "text": "The sizes are tied by one formula: cache size equals line size, times associativity, times the number of sets."
+        }
+      ]
+    },
+    {
+      "id": "assoc",
+      "chapter": "Associativity: where a line can go",
+      "segments": [
+        {
+          "id": "def",
+          "text": "Associativity is the number of places in the cache where a given line may be stored. There are three designs."
+        },
+        {
+          "id": "full",
+          "text": "Fully associative: any line can go in any slot. To find a line, the cache must compare its tag against every slot at once."
+        },
+        {
+          "id": "fullcost",
+          "text": "A four megabyte cache has sixty-five thousand five hundred thirty-six slots. That is far too many comparators, so fully associative caches only work when they are tiny, like some TLBs."
+        },
+        {
+          "id": "direct",
+          "text": "Direct-mapped: each line can go in exactly one slot. One comparator is enough, so it is fast and cheap."
+        },
+        {
+          "id": "directcost",
+          "text": "But two addresses that map to the same slot keep evicting each other, while other slots sit empty. This is called a conflict miss."
+        },
+        {
+          "id": "setassoc",
+          "text": "Set-associative: the cache is divided into sets, and each set has a few slots, called ways. The set index picks a set, and the cache compares the tags of all its ways at once."
+        },
+        {
+          "id": "lru",
+          "text": "When a set is full, the cache evicts a line. The usual policy evicts the least recently used one."
+        }
+      ]
+    },
+    {
+      "id": "sim",
+      "chapter": "A tiny cache, step by step",
+      "segments": [
+        {
+          "id": "setup",
+          "text": "Here is the simulator from the blog post. The cache holds eight lines of sixteen bytes: one hundred twenty-eight bytes in total. Only the associativity will change."
+        },
+        {
+          "id": "seq",
+          "text": "First, a sequential scan of sixteen integers, through a direct-mapped cache."
+        },
+        {
+          "id": "seqrun",
+          "text": "The first read misses and loads sixteen bytes. The next three integers are already in that line, so they hit. The pattern repeats."
+        },
+        {
+          "id": "seqres",
+          "text": "Four misses and twelve hits. That is spatial locality."
+        },
+        {
+          "id": "reuse",
+          "text": "Next, reuse. The loop reads eight integers, three times over."
+        },
+        {
+          "id": "reuserun",
+          "text": "The first pass loads two lines. Every later pass finds them in the cache."
+        },
+        {
+          "id": "reuseres",
+          "text": "Two misses, then hits for the rest. That is temporal locality."
+        },
+        {
+          "id": "conf",
+          "text": "Now the hard case. The loop computes a of i equals b of i plus c of i, and the three arrays are one hundred twenty-eight bytes apart, exactly the cache size."
+        },
+        {
+          "id": "confdm",
+          "text": "In a direct-mapped cache, all three arrays map to set zero. Every access evicts the line the next access needs."
+        },
+        {
+          "id": "confdmres",
+          "text": "Twelve accesses, twelve misses. And the dirty lines of a are written back over and over."
+        },
+        {
+          "id": "conf2",
+          "text": "With two ways, it is no better. Three lines compete for two ways, and LRU always evicts the line that is needed next."
+        },
+        {
+          "id": "conf4",
+          "text": "With four ways, all three lines fit in one set."
+        },
+        {
+          "id": "conf4res",
+          "text": "Three misses, then nine hits. Same capacity. Very different result."
+        },
+        {
+          "id": "paper",
+          "text": "The paper measured this on a real workload, a gcc compile, in a simulator. For an eight megabyte cache, going from direct-mapped to two-way cut misses by almost forty-four percent."
+        },
+        {
+          "id": "paper2",
+          "text": "Each further doubling helped less. Above eight ways, the gains for a single-threaded program were small."
+        },
+        {
+          "id": "shared",
+          "text": "But when threads or cores share a cache, each one effectively gets only a fraction of the ways. So shared caches need higher associativity."
+        }
+      ]
+    },
+    {
+      "id": "writes",
+      "chapter": "Writes: write-back and dirty lines",
+      "segments": [
+        {
+          "id": "rule",
+          "text": "A cache must behave as if it were not there. After a write, every later read must see the new value."
+        },
+        {
+          "id": "through",
+          "text": "Write-through sends every write to main memory immediately. Memory is always up to date, but the traffic is high."
+        },
+        {
+          "id": "back",
+          "text": "Write-back only updates the cache, and marks the line dirty. The line is written to memory when it is evicted."
+        },
+        {
+          "id": "backwhy",
+          "text": "Most memory is cached this way, because it avoids most of that traffic."
+        },
+        {
+          "id": "sim",
+          "text": "In the conflicting-arrays run, each eviction of a dirty a line cost an extra write to memory. The direct-mapped cache wrote back three times. The four-way cache, not once."
+        },
+        {
+          "id": "special",
+          "text": "Two other policies apply to special address ranges. Write-combining gathers several writes before sending them, for memory such as graphics cards. Uncacheable memory is never cached at all, for device registers."
+        },
+        {
+          "id": "coherence",
+          "text": "With more than one core, write-back needs one more thing: cache coherence. A dirty line is present in only one cache. Clean copies can be in any number. Part five covers how this is enforced."
+        }
+      ]
+    },
+    {
+      "id": "addresses",
+      "chapter": "Which address does the cache use?",
+      "segments": [
+        {
+          "id": "two",
+          "text": "Programs use virtual addresses, and the processor translates each one to a physical address. Which one should the cache use?"
+        },
+        {
+          "id": "virt",
+          "text": "Virtual addresses are not unique. The same address means different memory in different processes. Physical addresses avoid that, but translation takes time."
+        },
+        {
+          "id": "paper",
+          "text": "In 2007, the paper's answer was this. L1 caches used virtual addresses, because with a latency of about three cycles, there is no time to translate."
+        },
+        {
+          "id": "paper2",
+          "text": "L2 and larger caches used physical addresses. They are slower, so translation finishes in time."
+        },
+        {
+          "id": "vipt",
+          "text": "Today, L1 data caches on x86 use both. The virtual address picks the set, and the physical address is the tag."
+        },
+        {
+          "id": "vipt2",
+          "text": "This works because, for a thirty-two kilobyte, eight-way cache, the set index and offset fit exactly in the low twelve bits. Those bits are the offset inside a four kilobyte page, and translation does not change them."
+        },
+        {
+          "id": "advice",
+          "text": "A program cannot choose its physical addresses. The paper's advice is to use each memory page completely, and to use larger pages where they make sense."
+        }
+      ]
+    },
+    {
+      "id": "changed",
+      "chapter": "What changed since 2007",
+      "segments": [
+        {
+          "id": "intro",
+          "text": "The concepts in this video still describe current hardware. A few details have changed."
+        },
+        {
+          "id": "mc",
+          "text": "The memory controller now sits on the CPU. The Northbridge and the front-side bus are gone."
+        },
+        {
+          "id": "ddr",
+          "text": "DDR5 has replaced DDR2. Bandwidth is much higher, but latency in nanoseconds has improved far less."
+        },
+        {
+          "id": "l2",
+          "text": "Most designs have a private L2 per core, and a large shared L3."
+        },
+        {
+          "id": "lines",
+          "text": "Sixty-four byte lines are still standard on x86. Some ARM designs, including Apple's, use one hundred twenty-eight bytes."
+        },
+        {
+          "id": "lru",
+          "text": "And replacement policies approximate LRU, instead of tracking it exactly."
+        }
+      ]
+    },
+    {
+      "id": "remember",
+      "chapter": "What to remember",
+      "segments": [
+        {
+          "id": "r1",
+          "text": "Main memory is DRAM because it is cheap. Caches are SRAM because they are fast."
+        },
+        {
+          "id": "r2",
+          "text": "DRAM is fastest when reads stay within an open row."
+        },
+        {
+          "id": "r3",
+          "text": "Caches work because of locality, and only while the working set fits."
+        },
+        {
+          "id": "r4",
+          "text": "Caches move whole lines, usually sixty-four bytes."
+        },
+        {
+          "id": "r5",
+          "text": "An address splits into tag, set index, and offset. Addresses a multiple of sets times line size apart compete for the same set."
+        },
+        {
+          "id": "r6",
+          "text": "Set-associative caches limit conflict misses. Beyond about eight ways, extra ways help one thread very little."
+        },
+        {
+          "id": "r7",
+          "text": "And write-back caches mark lines dirty, and write them to memory on eviction."
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "chapter": null,
+      "segments": [
+        {
+          "id": "next",
+          "text": "Part two measures these effects: how access time changes as a working set outgrows each cache level."
+        },
+        {
+          "id": "blog",
+          "text": "The interactive version of this video, with every widget you saw here, is at mohit d dot com slash blog. Thanks for watching."
+        }
+      ]
+    }
+  ]
+}

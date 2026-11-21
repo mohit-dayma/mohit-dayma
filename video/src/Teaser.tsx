@@ -1,8 +1,5 @@
-import type { CSSProperties, ReactNode } from 'react';
 import {
   AbsoluteFill,
-  Easing,
-  interpolate,
   Sequence,
   spring,
   useCurrentFrame,
@@ -13,9 +10,11 @@ import {
   simulate,
   type CacheConfig,
   type CacheLine,
-  type CacheStep,
   type MemoryAccess,
 } from '../../src/components/mdx/memory/cache-model';
+import { Eyebrow, Fade, Rise } from './shared/anim';
+import { CacheGrid } from './shared/CacheGrid';
+import { LatencyBars, PAPER_LEVELS } from './shared/LatencyBars';
 import { color, mono, sans } from './theme';
 
 const SCENES = {
@@ -26,72 +25,6 @@ const SCENES = {
 };
 
 export const TEASER_DURATION = SCENES.outro.from + SCENES.outro.duration;
-
-const ease = Easing.bezier(0.22, 1, 0.36, 1);
-
-/** Fades a scene in and out over its first and last few frames. */
-const Fade = ({
-  children,
-  duration,
-}: {
-  children: ReactNode;
-  duration: number;
-}) => {
-  const frame = useCurrentFrame();
-  const opacity = interpolate(
-    frame,
-    [0, 12, duration - 12, duration],
-    [0, 1, 1, 0],
-    {
-      extrapolateLeft: 'clamp',
-      extrapolateRight: 'clamp',
-    },
-  );
-  return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
-};
-
-/** Fades and lifts an element in, starting at `delay` frames. */
-const Rise = ({
-  delay = 0,
-  children,
-  style,
-}: {
-  delay?: number;
-  children: ReactNode;
-  style?: CSSProperties;
-}) => {
-  const frame = useCurrentFrame();
-  const t = interpolate(frame - delay, [0, 18], [0, 1], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-    easing: ease,
-  });
-  return (
-    <div
-      style={{
-        opacity: t,
-        transform: `translateY(${(1 - t) * 24}px)`,
-        ...style,
-      }}
-    >
-      {children}
-    </div>
-  );
-};
-
-const Eyebrow = ({ children }: { children: ReactNode }) => (
-  <div
-    style={{
-      fontFamily: mono,
-      fontSize: 26,
-      letterSpacing: 4,
-      textTransform: 'uppercase',
-      color: color.faint,
-    }}
-  >
-    {children}
-  </div>
-);
 
 /* ------------------------------------------------------------------ Hook */
 
@@ -119,18 +52,20 @@ const Hook = () => (
 
 /* ---------------------------------------------------------------- Ladder */
 
-// Pentium M figures as quoted in Drepper (2007), section 3.2.
-const LEVELS = [
-  { name: 'Register', cycles: 1 },
-  { name: 'L1d', cycles: 3 },
-  { name: 'L2', cycles: 14 },
-  { name: 'Main memory', cycles: 240 },
-];
-
 const Ladder = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const max = LEVELS[LEVELS.length - 1].cycles;
+  const grow = PAPER_LEVELS.map((_, i) => {
+    const isMemory = i === PAPER_LEVELS.length - 1;
+    // Memory arrives last and slowest, to make the wait felt.
+    const start = 30 + i * 22 + (isMemory ? 20 : 0);
+    return spring({
+      frame: frame - start,
+      fps,
+      config: { damping: 200 },
+      durationInFrames: isMemory ? 75 : 25,
+    });
+  });
 
   return (
     <AbsoluteFill style={{ padding: '140px 180px', fontFamily: sans, gap: 24 }}>
@@ -143,81 +78,8 @@ const Ladder = () => {
         </div>
       </Rise>
 
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 40,
-          marginTop: 70,
-        }}
-      >
-        {LEVELS.map((level, i) => {
-          const isMemory = i === LEVELS.length - 1;
-          // Memory arrives last and slowest, to make the wait felt.
-          const start = 30 + i * 22 + (isMemory ? 20 : 0);
-          const grow = spring({
-            frame: frame - start,
-            fps,
-            config: { damping: 200 },
-            durationInFrames: isMemory ? 75 : 25,
-          });
-          const width = Math.max((level.cycles / max) * 100, 0.7) * grow;
-          const shown = Math.round(level.cycles * grow);
-
-          return (
-            <div
-              key={level.name}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '300px 1fr 260px',
-                alignItems: 'center',
-                gap: 36,
-                opacity: interpolate(frame - start, [-8, 0], [0, 1], {
-                  extrapolateLeft: 'clamp',
-                  extrapolateRight: 'clamp',
-                }),
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 40,
-                  color: isMemory ? color.foreground : color.muted,
-                }}
-              >
-                {level.name}
-              </span>
-              <div
-                style={{
-                  height: 30,
-                  borderRadius: 999,
-                  background: color.surface,
-                  border: `1px solid ${color.lineSubtle}`,
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    width: `${width}%`,
-                    height: '100%',
-                    borderRadius: 999,
-                    background: isMemory ? color.amber : color.foreground,
-                  }}
-                />
-              </div>
-              <span
-                style={{
-                  fontFamily: mono,
-                  fontSize: 40,
-                  textAlign: 'right',
-                  color: isMemory ? color.amber : color.foreground,
-                }}
-              >
-                ~{shown}
-                <span style={{ color: color.faint, fontSize: 28 }}> cyc</span>
-              </span>
-            </div>
-          );
-        })}
+      <div style={{ marginTop: 70 }}>
+        <LatencyBars levels={PAPER_LEVELS} grow={grow} />
       </div>
 
       <Rise delay={200} style={{ marginTop: 'auto' }}>
@@ -267,115 +129,7 @@ const STEPS_END = STEP_START + TRACE.length * STEP_FRAMES;
 const arrayName = (line: CacheLine) =>
   line.lineAddress >= 0x100 ? 'c' : line.lineAddress >= 0x080 ? 'b' : 'a';
 
-const CacheGrid = ({
-  title,
-  config,
-  step,
-  local,
-}: {
-  title: string;
-  config: CacheConfig;
-  step: CacheStep;
-  /** Frames since this step began, for the flash on the touched slot. */
-  local: number;
-}) => {
-  const flash = interpolate(local, [0, 4, STEP_FRAMES], [0, 1, 0.35], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  });
-  const accent = step.outcome === 'hit' ? color.hit : color.miss;
-  const cellW = config.ways === 1 ? 300 : 170;
-  const cellH = config.sets === 8 ? 44 : 94;
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 16,
-        alignItems: 'center',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 18 }}>
-        <span
-          style={{ fontSize: 38, fontWeight: 600, color: color.foreground }}
-        >
-          {title}
-        </span>
-        <span style={{ fontFamily: mono, fontSize: 22, color: color.faint }}>
-          {config.sets} sets × {config.ways} way{config.ways === 1 ? '' : 's'}
-        </span>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {step.lines.map((set, s) => (
-          <div
-            key={s}
-            style={{ display: 'flex', gap: 6, alignItems: 'center' }}
-          >
-            <span
-              style={{
-                fontFamily: mono,
-                fontSize: 20,
-                color: color.faint,
-                width: 70,
-              }}
-            >
-              set {s}
-            </span>
-            {set.map((line, w) => {
-              const touched = step.parts?.set === s && step.way === w;
-              return (
-                <div
-                  key={w}
-                  style={{
-                    width: cellW,
-                    height: cellH,
-                    borderRadius: 10,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 10,
-                    fontFamily: mono,
-                    fontSize: 24,
-                    color: line.valid ? color.foreground : color.faint,
-                    background: touched
-                      ? `color-mix(in srgb, ${accent} ${Math.round(flash * 28)}%, ${color.surface})`
-                      : color.surface,
-                    border: `2px solid ${touched ? accent : color.lineSubtle}`,
-                  }}
-                >
-                  {line.valid ? `${arrayName(line)}[0..3]` : '—'}
-                  {line.dirty && (
-                    <span
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 99,
-                        background: color.amber,
-                      }}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          gap: 40,
-          fontFamily: mono,
-          fontSize: 32,
-          marginTop: 6,
-        }}
-      >
-        <span style={{ color: color.hit }}>{step.stats.hits} hits</span>
-        <span style={{ color: color.miss }}>{step.stats.misses} misses</span>
-      </div>
-    </div>
-  );
-};
+const label = (line: CacheLine) => `${arrayName(line)}[0..3]`;
 
 const Cache = () => {
   const frame = useCurrentFrame();
@@ -453,12 +207,20 @@ const Cache = () => {
           config={DIRECT}
           step={DIRECT_STEPS[index]}
           local={local}
+          stepFrames={STEP_FRAMES}
+          lineLabel={label}
+          cellW={300}
+          cellH={44}
         />
         <CacheGrid
           title="4-way"
           config={FOUR_WAY}
           step={FOUR_WAY_STEPS[index]}
           local={local}
+          stepFrames={STEP_FRAMES}
+          lineLabel={label}
+          cellW={170}
+          cellH={94}
         />
       </Rise>
 

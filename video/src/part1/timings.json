@@ -1,0 +1,651 @@
+{
+  "voice": "en_US-lessac-medium",
+  "gap": 0.35,
+  "scenes": {
+    "intro": {
+      "duration": 35.11,
+      "segments": [
+        {
+          "id": "hook1",
+          "start": 0.2,
+          "end": 3.439
+        },
+        {
+          "id": "hook2",
+          "start": 3.789,
+          "end": 8.236
+        },
+        {
+          "id": "hook3",
+          "start": 8.586,
+          "end": 13.09
+        },
+        {
+          "id": "paper",
+          "start": 13.44,
+          "end": 19.443
+        },
+        {
+          "id": "scope",
+          "start": 19.793,
+          "end": 26.875
+        },
+        {
+          "id": "dated",
+          "start": 27.225,
+          "end": 34.76
+        }
+      ]
+    },
+    "latency": {
+      "duration": 64.782,
+      "segments": [
+        {
+          "id": "history",
+          "start": 0.2,
+          "end": 5.796
+        },
+        {
+          "id": "split",
+          "start": 6.146,
+          "end": 9.908
+        },
+        {
+          "id": "cost",
+          "start": 10.258,
+          "end": 18.884
+        },
+        {
+          "id": "ladder",
+          "start": 19.234,
+          "end": 24.923
+        },
+        {
+          "id": "l1",
+          "start": 25.273,
+          "end": 28.791
+        },
+        {
+          "id": "l2",
+          "start": 29.141,
+          "end": 32.345
+        },
+        {
+          "id": "mem",
+          "start": 32.695,
+          "end": 35.737
+        },
+        {
+          "id": "ratio",
+          "start": 36.087,
+          "end": 40.046
+        },
+        {
+          "id": "today",
+          "start": 40.396,
+          "end": 48.767
+        },
+        {
+          "id": "hide",
+          "start": 49.117,
+          "end": 56.396
+        },
+        {
+          "id": "hide2",
+          "start": 56.746,
+          "end": 64.432
+        }
+      ]
+    },
+    "ram": {
+      "duration": 62.038,
+      "segments": [
+        {
+          "id": "intro",
+          "start": 0.2,
+          "end": 5.088
+        },
+        {
+          "id": "sram",
+          "start": 5.438,
+          "end": 14.041
+        },
+        {
+          "id": "dram",
+          "start": 14.391,
+          "end": 22.901
+        },
+        {
+          "id": "costs",
+          "start": 23.251,
+          "end": 25.468
+        },
+        {
+          "id": "leak",
+          "start": 25.818,
+          "end": 32.007
+        },
+        {
+          "id": "destroy",
+          "start": 32.357,
+          "end": 37.105
+        },
+        {
+          "id": "weak",
+          "start": 37.455,
+          "end": 44.851
+        },
+        {
+          "id": "slow",
+          "start": 45.201,
+          "end": 51.249
+        },
+        {
+          "id": "verdict",
+          "start": 51.599,
+          "end": 61.688
+        }
+      ]
+    },
+    "dram": {
+      "duration": 80.871,
+      "segments": [
+        {
+          "id": "grid",
+          "start": 0.2,
+          "end": 5.982
+        },
+        {
+          "id": "activate",
+          "start": 6.332,
+          "end": 14.819
+        },
+        {
+          "id": "column",
+          "start": 15.169,
+          "end": 18.988
+        },
+        {
+          "id": "rowhit",
+          "start": 19.338,
+          "end": 26.92
+        },
+        {
+          "id": "empty",
+          "start": 27.27,
+          "end": 31.67
+        },
+        {
+          "id": "conflict",
+          "start": 32.02,
+          "end": 40.878
+        },
+        {
+          "id": "seq",
+          "start": 41.228,
+          "end": 48.624
+        },
+        {
+          "id": "burst",
+          "start": 48.974,
+          "end": 53.92
+        },
+        {
+          "id": "aside",
+          "start": 54.27,
+          "end": 67.435
+        },
+        {
+          "id": "today",
+          "start": 67.785,
+          "end": 80.522
+        }
+      ]
+    },
+    "locality": {
+      "duration": 77.04,
+      "segments": [
+        {
+          "id": "auto",
+          "start": 0.2,
+          "end": 9.256
+        },
+        {
+          "id": "why",
+          "start": 9.606,
+          "end": 12.439
+        },
+        {
+          "id": "temporal",
+          "start": 12.789,
+          "end": 18.733
+        },
+        {
+          "id": "spatial",
+          "start": 19.083,
+          "end": 25.817
+        },
+        {
+          "id": "example",
+          "start": 26.167,
+          "end": 36.767
+        },
+        {
+          "id": "nocache",
+          "start": 37.117,
+          "end": 42.48
+        },
+        {
+          "id": "cache",
+          "start": 42.83,
+          "end": 52.687
+        },
+        {
+          "id": "saving",
+          "start": 53.037,
+          "end": 56.694
+        },
+        {
+          "id": "limit",
+          "start": 57.044,
+          "end": 66.309
+        },
+        {
+          "id": "working",
+          "start": 66.659,
+          "end": 76.69
+        }
+      ]
+    },
+    "hierarchy": {
+      "duration": 52.341,
+      "segments": [
+        {
+          "id": "levels",
+          "start": 0.2,
+          "end": 7.085
+        },
+        {
+          "id": "l1",
+          "start": 7.435,
+          "end": 15.109
+        },
+        {
+          "id": "l2",
+          "start": 15.459,
+          "end": 20.625
+        },
+        {
+          "id": "l3",
+          "start": 20.975,
+          "end": 24.969
+        },
+        {
+          "id": "sharing",
+          "start": 25.319,
+          "end": 32.471
+        },
+        {
+          "id": "inclusive",
+          "start": 32.821,
+          "end": 45.789
+        },
+        {
+          "id": "today",
+          "start": 46.139,
+          "end": 51.991
+        }
+      ]
+    },
+    "lines": {
+      "duration": 69.064,
+      "segments": [
+        {
+          "id": "lines",
+          "start": 0.2,
+          "end": 8.304
+        },
+        {
+          "id": "tag",
+          "start": 8.654,
+          "end": 16.479
+        },
+        {
+          "id": "reasons",
+          "start": 16.829,
+          "end": 23.365
+        },
+        {
+          "id": "whole",
+          "start": 23.715,
+          "end": 30.751
+        },
+        {
+          "id": "split",
+          "start": 31.101,
+          "end": 34.955
+        },
+        {
+          "id": "offset",
+          "start": 35.305,
+          "end": 41.494
+        },
+        {
+          "id": "set",
+          "start": 41.844,
+          "end": 46.511
+        },
+        {
+          "id": "tagbits",
+          "start": 46.861,
+          "end": 53.664
+        },
+        {
+          "id": "l2",
+          "start": 54.014,
+          "end": 60.713
+        },
+        {
+          "id": "formula",
+          "start": 61.063,
+          "end": 68.714
+        }
+      ]
+    },
+    "assoc": {
+      "duration": 56.056,
+      "segments": [
+        {
+          "id": "def",
+          "start": 0.2,
+          "end": 6.063
+        },
+        {
+          "id": "full",
+          "start": 6.413,
+          "end": 13.785
+        },
+        {
+          "id": "fullcost",
+          "start": 14.135,
+          "end": 24.991
+        },
+        {
+          "id": "direct",
+          "start": 25.341,
+          "end": 31.622
+        },
+        {
+          "id": "directcost",
+          "start": 31.972,
+          "end": 39.216
+        },
+        {
+          "id": "setassoc",
+          "start": 39.566,
+          "end": 49.76
+        },
+        {
+          "id": "lru",
+          "start": 50.11,
+          "end": 55.706
+        }
+      ]
+    },
+    "sim": {
+      "duration": 101.013,
+      "segments": [
+        {
+          "id": "setup",
+          "start": 0.2,
+          "end": 9.418
+        },
+        {
+          "id": "seq",
+          "start": 9.768,
+          "end": 14.122
+        },
+        {
+          "id": "seqrun",
+          "start": 14.472,
+          "end": 21.891
+        },
+        {
+          "id": "seqres",
+          "start": 22.241,
+          "end": 25.41
+        },
+        {
+          "id": "reuse",
+          "start": 25.76,
+          "end": 29.766
+        },
+        {
+          "id": "reuserun",
+          "start": 30.116,
+          "end": 34.411
+        },
+        {
+          "id": "reuseres",
+          "start": 34.761,
+          "end": 38.349
+        },
+        {
+          "id": "conf",
+          "start": 38.699,
+          "end": 47.987
+        },
+        {
+          "id": "confdm",
+          "start": 48.337,
+          "end": 55.338
+        },
+        {
+          "id": "confdmres",
+          "start": 55.688,
+          "end": 60.483
+        },
+        {
+          "id": "conf2",
+          "start": 60.833,
+          "end": 67.892
+        },
+        {
+          "id": "conf4",
+          "start": 68.242,
+          "end": 71.121
+        },
+        {
+          "id": "conf4res",
+          "start": 71.471,
+          "end": 75.767
+        },
+        {
+          "id": "paper",
+          "start": 76.117,
+          "end": 86.229
+        },
+        {
+          "id": "paper2",
+          "start": 86.579,
+          "end": 92.465
+        },
+        {
+          "id": "shared",
+          "start": 92.815,
+          "end": 100.663
+        }
+      ]
+    },
+    "writes": {
+      "duration": 57.437,
+      "segments": [
+        {
+          "id": "rule",
+          "start": 0.2,
+          "end": 6.133
+        },
+        {
+          "id": "through",
+          "start": 6.483,
+          "end": 12.961
+        },
+        {
+          "id": "back",
+          "start": 13.311,
+          "end": 19.499
+        },
+        {
+          "id": "backwhy",
+          "start": 19.849,
+          "end": 23.994
+        },
+        {
+          "id": "sim",
+          "start": 24.344,
+          "end": 33.876
+        },
+        {
+          "id": "special",
+          "start": 34.226,
+          "end": 45.952
+        },
+        {
+          "id": "coherence",
+          "start": 46.302,
+          "end": 57.087
+        }
+      ]
+    },
+    "addresses": {
+      "duration": 62.813,
+      "segments": [
+        {
+          "id": "two",
+          "start": 0.2,
+          "end": 7.294
+        },
+        {
+          "id": "virt",
+          "start": 7.644,
+          "end": 16.398
+        },
+        {
+          "id": "paper",
+          "start": 16.748,
+          "end": 26.314
+        },
+        {
+          "id": "paper2",
+          "start": 26.664,
+          "end": 32.841
+        },
+        {
+          "id": "vipt",
+          "start": 33.191,
+          "end": 40.679
+        },
+        {
+          "id": "vipt2",
+          "start": 41.029,
+          "end": 53.545
+        },
+        {
+          "id": "advice",
+          "start": 53.895,
+          "end": 62.463
+        }
+      ]
+    },
+    "changed": {
+      "duration": 36.456,
+      "segments": [
+        {
+          "id": "intro",
+          "start": 0.2,
+          "end": 5.146
+        },
+        {
+          "id": "mc",
+          "start": 5.496,
+          "end": 10.813
+        },
+        {
+          "id": "ddr",
+          "start": 11.163,
+          "end": 18.431
+        },
+        {
+          "id": "l2",
+          "start": 18.781,
+          "end": 23.112
+        },
+        {
+          "id": "lines",
+          "start": 23.462,
+          "end": 30.915
+        },
+        {
+          "id": "lru",
+          "start": 31.265,
+          "end": 36.107
+        }
+      ]
+    },
+    "remember": {
+      "duration": 37.979,
+      "segments": [
+        {
+          "id": "r1",
+          "start": 0.2,
+          "end": 5.552
+        },
+        {
+          "id": "r2",
+          "start": 5.902,
+          "end": 9.641
+        },
+        {
+          "id": "r3",
+          "start": 9.991,
+          "end": 14.205
+        },
+        {
+          "id": "r4",
+          "start": 14.555,
+          "end": 17.725
+        },
+        {
+          "id": "r5",
+          "start": 18.075,
+          "end": 25.818
+        },
+        {
+          "id": "r6",
+          "start": 26.168,
+          "end": 32.983
+        },
+        {
+          "id": "r7",
+          "start": 33.333,
+          "end": 37.629
+        }
+      ]
+    },
+    "outro": {
+      "duration": 14.228,
+      "segments": [
+        {
+          "id": "next",
+          "start": 0.2,
+          "end": 6.133
+        },
+        {
+          "id": "blog",
+          "start": 6.483,
+          "end": 13.878
+        }
+      ]
+    }
+  }
+}
