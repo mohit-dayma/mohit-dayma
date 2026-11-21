@@ -230,7 +230,7 @@ In 2007, the paper's answer was:
 - **L1 caches** used virtual addresses, because their latency of about 3 cycles left no time for translation. They are small, so clearing them when mappings change is affordable.
 - **L2 and larger caches** used physical addresses. They are slower, so translation finishes in time, and they are too large to clear often.
 
-**Since 2007:** L1 data caches on current x86 processors use the virtual address to choose the set and the physical address as the tag (virtually indexed, physically tagged). This works because the set index and offset fit inside the 12-bit offset of a 4 KB page, which translation does not change. Select the 32 KB L1d preset in the address decoder: the set index and offset use exactly 12 bits. This is also why L1d sizes are multiples of 4 KB times the number of ways: 32 KB is 8 × 4 KB, and 48 KB is 12 × 4 KB.
+**Since 2007:** L1 data caches on current x86 processors use the virtual address to choose the set and the physical address as the tag (virtually indexed, physically tagged). This works because the set index and offset fit inside the 12-bit offset of a 4 KB page, which translation does not change. Select the 32 KB L1d preset in the tag, set, offset widget above: the set index and offset use exactly 12 bits. This is also why an L1d cache is usually 4 KB times its number of ways: 32 KB with 8 ways, or 48 KB with 12 ways. A bigger L1d at the same associativity would need set-index bits outside the page offset.
 
 The replacement policy is also mostly invisible to programs. The paper notes that true LRU becomes expensive to track as associativity grows, and that other strategies might be adopted.
 
